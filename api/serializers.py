@@ -4,6 +4,8 @@ from api.models import Classroom
 
 
 class ClassroomSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(read_only=True)
+
     class Meta:
         model = Classroom
-        fields = ('id', 'teacher', 'name', 'subject')
+        fields = ('teacher', 'name', 'subject', 'code')
