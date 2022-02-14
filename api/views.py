@@ -1,4 +1,3 @@
-from oauth2_provider.models import AccessToken
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,15 +11,12 @@ class ListCreateClassroom(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        classrooms = Classroom.objects.all()
+        classrooms = Classroom.objects.filter(teacher=request.user)
         serializer = ClassroomSerializer(classrooms, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        token = request.headers.get('Authorization').split()[1]
-        token_obj = AccessToken.objects.get(token=token)
-        teacher = token_obj.user.pk
-        request.data.update({"teacher": teacher})
+        request.data.update({"teacher": request.user.id})
 
         serializer = ClassroomSerializer(data=request.data)
         if serializer.is_valid():
