@@ -61,5 +61,10 @@ def user_details(request):
 @permission_classes([IsAuthenticated])
 def classes(request, code):
     classroom = Classroom.objects.get(code=code)
-    serializer = ClassroomDetailsSerializer(classroom)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    user = request.user
+
+    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
+        serializer = ClassroomDetailsSerializer(classroom)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_403_FORBIDDEN)
