@@ -9,6 +9,7 @@ class Classroom(models.Model):
     name = models.CharField(max_length=250)
     subject = models.CharField(max_length=50)
     code = models.CharField(max_length=CODE_LEN, unique=True)
+    students = models.ManyToManyField(get_user_model(), related_name='enrolled_classrooms')
 
     def save(self, *args, **kwargs):
         while True:
