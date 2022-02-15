@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from api.models import Classroom
 
-from .serializers import ClassroomSerializer
+from .serializers import ClassroomSerializer, UserSerializer
 
 
 class ListCreateClassroom(APIView):
@@ -47,4 +47,11 @@ def classes_enrolled(request):
     classes_enrolled = student.enrolled_classrooms.all()
     serializer = ClassroomSerializer(classes_enrolled, many=True)
 
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_details(request):
+    serializer = UserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
