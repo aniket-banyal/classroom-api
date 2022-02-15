@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ClassroomSerializer(serializers.ModelSerializer):
     code = serializers.CharField(read_only=True)
-    students = UserSerializer(read_only=True, many=True)
+    students = UserSerializer(read_only=True, many=True, allow_empty=True)
 
     class Meta:
         model = Classroom
