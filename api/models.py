@@ -21,3 +21,11 @@ class Classroom(models.Model):
 
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'
+
+
+class Announcement(models.Model):
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    def __str__(self):
+        return self.text
