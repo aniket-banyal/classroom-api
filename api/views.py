@@ -1,5 +1,6 @@
-from rest_framework import permissions, status
-from rest_framework.decorators import api_view
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,7 +10,7 @@ from .serializers import ClassroomSerializer
 
 
 class ListCreateClassroom(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         classrooms = Classroom.objects.filter(teacher=request.user)
@@ -27,10 +28,23 @@ class ListCreateClassroom(APIView):
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def join_class(request):
     code = request.data['code']
     classroom = Classroom.objects.get(code=code)
     classroom.students.add(request.user)
     serializer = ClassroomSerializer(classroom)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def classes_enrolled(request):
+    student = request.user
+
+    # using related_name 'enrolled_classrooms' specified in Classroom model
+    classes_enrolled = student.enrolled_classrooms.all()
+    serializer = ClassroomSerializer(classes_enrolled, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
