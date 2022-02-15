@@ -16,12 +16,19 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         fields = ('id', 'text')
 
 
+class NewAnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
+        fields = ('text', 'classroom')
+
+
 class ClassroomSerializer(serializers.ModelSerializer):
     code = serializers.CharField(read_only=True)
 
     class Meta:
         model = Classroom
         fields = ('teacher', 'name', 'subject', 'code')
+
 
 class ClassroomDetailsSerializer(serializers.ModelSerializer):
     code = serializers.CharField(read_only=True)
