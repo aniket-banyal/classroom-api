@@ -84,6 +84,7 @@ def announcements(request, code):
 
     elif request.method == 'POST':
         request.data.update({"classroom": classroom.id})
+        request.data.update({"author": user.id})
 
         serializer = NewAnnouncementSerializer(data=request.data)
         if serializer.is_valid():

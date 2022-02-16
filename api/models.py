@@ -26,6 +26,11 @@ class Classroom(models.Model):
 class Announcement(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     text = models.TextField()
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
+    @property
+    def author_name(self):
+        return self.author.first_name + ' ' + self.author.last_name
 
     def __str__(self):
         return self.text
