@@ -28,13 +28,3 @@ class ClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom
         fields = ('teacher', 'name', 'subject', 'code')
-
-
-class ClassroomDetailsSerializer(serializers.ModelSerializer):
-    code = serializers.CharField(read_only=True)
-    students = UserSerializer(read_only=True, many=True, allow_empty=True)
-    announcements = AnnouncementSerializer(source='announcement_set', many=True, allow_empty=True)
-
-    class Meta:
-        model = Classroom
-        fields = ('teacher', 'name', 'subject', 'code', 'students', 'announcements')

@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 
 from api.models import Classroom
 
-from .serializers import ClassroomDetailsSerializer, ClassroomSerializer, NewAnnouncementSerializer, UserSerializer
+from .serializers import AnnouncementSerializer, ClassroomSerializer, NewAnnouncementSerializer, UserSerializer
 
 
 class ListCreateClassroom(APIView):
@@ -64,25 +64,29 @@ def classes(request, code):
     user = request.user
 
     if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
-        serializer = ClassroomDetailsSerializer(classroom)
+        serializer = ClassroomSerializer(classroom)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
 
 
-@api_view(['POST'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def announcements(request, code):
     classroom = Classroom.objects.get(code=code)
     user = request.user
-
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    request.data.update({"classroom": classroom.id})
+    if request.method == 'GET':
+        serializer = AnnouncementSerializer(classroom.announcement_set.all(), many=True)
+        return Response(serializer.data)
 
-    serializer = NewAnnouncementSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'POST':
+        request.data.update({"classroom": classroom.id})
+
+        serializer = NewAnnouncementSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
