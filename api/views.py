@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -33,7 +34,7 @@ class ListCreateClassroom(APIView):
 @permission_classes([IsAuthenticated])
 def join_class(request):
     code = request.data['code']
-    classroom = Classroom.objects.get(code=code)
+    classroom = get_object_or_404(Classroom, code=code)
     classroom.students.add(request.user)
     serializer = ClassroomSerializer(classroom)
 
