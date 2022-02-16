@@ -91,3 +91,15 @@ def announcements(request, code):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def students(request, code):
+    classroom = Classroom.objects.get(code=code)
+    user = request.user
+    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    serializer = UserSerializer(classroom.students.all(), many=True)
+    return Response(serializer.data)

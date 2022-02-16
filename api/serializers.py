@@ -5,9 +5,14 @@ from api.models import Announcement, Classroom
 
 
 class UserSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = get_user_model()
-        fields = ('first_name', 'last_name', 'email')
+        fields = ('name', 'email')
+
+    def get_name(self, user):
+        return user.first_name + ' ' + user.last_name
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
