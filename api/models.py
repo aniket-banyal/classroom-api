@@ -34,3 +34,16 @@ class Announcement(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Comment(models.Model):
+    announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
+    text = models.TextField()
+    author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
+    @property
+    def author_name(self):
+        return self.author.first_name + ' ' + self.author.last_name
+
+    def __str__(self):
+        return self.text

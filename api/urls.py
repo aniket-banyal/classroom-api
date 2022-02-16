@@ -9,5 +9,6 @@ urlpatterns = [
     path('classes/<str:code>', views.classes, name='classes'),
     path('classes/<str:code>/announcements', views.announcements, name='announcements'),
     path('classes/<str:code>/students', views.students, name='students'),
+    path('classes/<str:code>/announcements/<int:id>/comments', views.announcement_comments, name='announcement_comments'),
     path('join_class', views.join_class, name='join_class'),
 ]

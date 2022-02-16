@@ -4,9 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models import Classroom
+from api.models import Announcement, Classroom
 
-from .serializers import AnnouncementSerializer, ClassroomSerializer, NewAnnouncementSerializer, UserSerializer
+from .serializers import (AnnouncementSerializer, ClassroomSerializer,
+                          CommentSerializer, NewAnnouncementSerializer,
+                          UserSerializer)
 
 
 class ListCreateClassroom(APIView):
@@ -103,3 +105,20 @@ def students(request, code):
 
     serializer = UserSerializer(classroom.students.all(), many=True)
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def announcement_comments(request, code, id):
+    classroom = Classroom.objects.get(code=code)
+    user = request.user
+    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    announcement = Announcement.objects.get(id=id)
+    # check if announcement is part of this classroom
+    if announcement in classroom.announcement_set.all():
+        comments = announcement.comment_set.all()
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+    return Response(status=status.HTTP_403_FORBIDDEN)

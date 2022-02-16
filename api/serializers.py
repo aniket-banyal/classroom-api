@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.models import Announcement, Classroom
+from api.models import Announcement, Classroom, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -35,3 +35,11 @@ class ClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom
         fields = ('teacher', 'name', 'subject', 'code')
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author_name = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author_name')
