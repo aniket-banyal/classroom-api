@@ -8,7 +8,7 @@ from api.models import Announcement, Classroom
 
 from .serializers import (AnnouncementSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          UserSerializer)
+                          NewCommentSerializer, UserSerializer)
 
 
 class ListCreateClassroom(APIView):
@@ -107,7 +107,7 @@ def students(request, code):
     return Response(serializer.data)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def announcement_comments(request, code, id):
     classroom = Classroom.objects.get(code=code)
@@ -116,9 +116,21 @@ def announcement_comments(request, code, id):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     announcement = Announcement.objects.get(id=id)
-    # check if announcement is part of this classroom
-    if announcement in classroom.announcement_set.all():
+    # announcement should be part of this classroom
+    if announcement not in classroom.announcement_set.all():
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == 'GET':
         comments = announcement.comment_set.all()
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
-    return Response(status=status.HTTP_403_FORBIDDEN)
+
+    elif request.method == 'POST':
+        request.data.update({"announcement": announcement.id})
+        request.data.update({"author": user.id})
+
+        serializer = NewCommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
