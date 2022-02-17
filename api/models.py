@@ -29,6 +29,7 @@ class Announcement(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
     text = models.TextField()
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def author_name(self):
