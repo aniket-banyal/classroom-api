@@ -35,7 +35,13 @@ class ListCreateClassroom(APIView):
 def join_class(request):
     code = request.data['code']
     classroom = get_object_or_404(Classroom, code=code)
-    classroom.students.add(request.user)
+
+    # check is user is already part of this classroom as a Teacher or Student
+    user = request.user
+    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
+        return Response(status=status.HTTP_409_CONFLICT)
+
+    classroom.students.add(user)
     serializer = ClassroomSerializer(classroom)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
