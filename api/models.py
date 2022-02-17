@@ -12,10 +12,12 @@ class Classroom(models.Model):
     students = models.ManyToManyField(get_user_model(), related_name='enrolled_classrooms')
 
     def save(self, *args, **kwargs):
-        while True:
-            self.code = get_random_string(length=self.CODE_LEN)
-            if not Classroom.objects.filter(code=self.code).exists():
-                break
+        # save is also called when a classroom is updated, so this check prevents updation of code
+        if self.code == '':
+            while True:
+                self.code = get_random_string(length=self.CODE_LEN)
+                if not Classroom.objects.filter(code=self.code).exists():
+                    break
 
         super().save(*args, **kwargs)
 
