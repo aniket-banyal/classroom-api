@@ -143,7 +143,7 @@ def announcement_comments(request, code, id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT'])
+@api_view(['PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def announcement_detail(request, code, id):
     classroom = Classroom.objects.get(code=code)
@@ -161,3 +161,7 @@ def announcement_detail(request, code, id):
             serializer.save()
             return Response(AnnouncementSerializer(announcement).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        announcement.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
