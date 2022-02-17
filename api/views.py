@@ -122,10 +122,10 @@ def announcement_comments(request, code, id):
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    announcement = Announcement.objects.get(id=id)
+    announcement = get_object_or_404(Announcement, id=id)
     # announcement should be part of this classroom
     if announcement not in classroom.announcement_set.all():
-        return Response(status=status.HTTP_403_FORBIDDEN)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         comments = announcement.comment_set.all()
@@ -140,4 +140,24 @@ def announcement_comments(request, code, id):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def announcement_detail(request, code, id):
+    classroom = Classroom.objects.get(code=code)
+    user = request.user
+    if user != classroom.teacher:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    announcement = get_object_or_404(Announcement, id=id)
+    if announcement not in classroom.announcement_set.all():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(AnnouncementSerializer(announcement).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
