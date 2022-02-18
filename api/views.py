@@ -88,7 +88,7 @@ def announcements(request, code):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
-        serializer = AnnouncementSerializer(classroom.announcement_set.all(), many=True)
+        serializer = AnnouncementSerializer(classroom.announcement_set.all().order_by('-created_at'), many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
