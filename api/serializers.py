@@ -38,11 +38,11 @@ class ClassroomSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author_name = serializers.ReadOnlyField()
+    author = UserSerializer(read_only=True)
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author_name')
+        fields = ('id', 'text', 'author', 'created_at')
 
 
 class NewCommentSerializer(serializers.ModelSerializer):
