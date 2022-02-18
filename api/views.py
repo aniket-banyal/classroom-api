@@ -69,7 +69,7 @@ def user_details(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def classes(request, code):
-    classroom = Classroom.objects.get(code=code)
+    classroom = get_object_or_404(Classroom, code=code)
     user = request.user
 
     if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
@@ -82,8 +82,9 @@ def classes(request, code):
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def announcements(request, code):
-    classroom = Classroom.objects.get(code=code)
+    classroom = get_object_or_404(Classroom, code=code)
     user = request.user
+
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -105,8 +106,9 @@ def announcements(request, code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def students(request, code):
-    classroom = Classroom.objects.get(code=code)
+    classroom = get_object_or_404(Classroom, code=code)
     user = request.user
+
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -117,8 +119,9 @@ def students(request, code):
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def announcement_comments(request, code, id):
-    classroom = Classroom.objects.get(code=code)
+    classroom = get_object_or_404(Classroom, code=code)
     user = request.user
+
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -146,9 +149,9 @@ def announcement_comments(request, code, id):
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def announcement_comments_detail(request, code, announcement_id, comment_id):
-    classroom = Classroom.objects.get(code=code)
-
+    classroom = get_object_or_404(Classroom, code=code)
     announcement = get_object_or_404(Announcement, id=announcement_id)
+
     if announcement not in classroom.announcement_set.all():
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -167,9 +170,9 @@ def announcement_comments_detail(request, code, announcement_id, comment_id):
 @api_view(['PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def announcement_detail(request, code, id):
-    classroom = Classroom.objects.get(code=code)
-
+    classroom = get_object_or_404(Classroom, code=code)
     announcement = get_object_or_404(Announcement, id=id)
+
     if announcement not in classroom.announcement_set.all():
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -194,6 +197,7 @@ def announcement_detail(request, code, id):
 def user_role(request, code):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
+
     if user == classroom.teacher:
         return Response(data={'role': 'teacher'}, status=status.HTTP_200_OK)
 
