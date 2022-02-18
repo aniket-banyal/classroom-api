@@ -16,11 +16,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
-    author_name = serializers.ReadOnlyField()
+    author = UserSerializer(read_only=True)
 
     class Meta:
         model = Announcement
-        fields = ('id', 'text', 'author_name', 'created_at')
+        fields = ('id', 'text', 'author', 'created_at')
 
 
 class NewAnnouncementSerializer(serializers.ModelSerializer):

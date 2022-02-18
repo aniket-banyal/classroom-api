@@ -147,13 +147,14 @@ def announcement_comments(request, code, id):
 @permission_classes([IsAuthenticated])
 def announcement_detail(request, code, id):
     classroom = Classroom.objects.get(code=code)
-    user = request.user
-    if user != classroom.teacher:
-        return Response(status=status.HTTP_403_FORBIDDEN)
 
     announcement = get_object_or_404(Announcement, id=id)
     if announcement not in classroom.announcement_set.all():
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if not (user == classroom.teacher or user == announcement.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
         serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
@@ -165,3 +166,17 @@ def announcement_detail(request, code, id):
     elif request.method == 'DELETE':
         announcement.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_role(request, code):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+    if user == classroom.teacher:
+        return Response(data={'role': 'teacher'}, status=status.HTTP_200_OK)
+
+    if classroom in user.enrolled_classrooms.all():
+        return Response(data={'role': 'student'}, status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_403_FORBIDDEN)
