@@ -30,10 +30,7 @@ class Announcement(models.Model):
     text = models.TextField()
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    @property
-    def author_name(self):
-        return self.author.first_name + ' ' + self.author.last_name
+    edited_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.text

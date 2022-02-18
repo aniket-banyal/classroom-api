@@ -20,7 +20,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Announcement
-        fields = ('id', 'text', 'author', 'created_at')
+        fields = ('id', 'text', 'author', 'created_at', 'edited_at')
 
 
 class NewAnnouncementSerializer(serializers.ModelSerializer):
