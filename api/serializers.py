@@ -31,6 +31,7 @@ class NewAnnouncementSerializer(serializers.ModelSerializer):
 
 class ClassroomSerializer(serializers.ModelSerializer):
     code = serializers.CharField(read_only=True)
+    teacher = UserSerializer(read_only=True)
 
     class Meta:
         model = Classroom
