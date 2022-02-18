@@ -7,8 +7,9 @@ from rest_framework.views import APIView
 
 from api.models import Announcement, Classroom, Comment
 
-from .serializers import (AnnouncementSerializer, ClassroomSerializer,
-                          CommentSerializer, NewAnnouncementSerializer,
+from .serializers import (AnnouncementSerializer, AssignmentSerializer,
+                          ClassroomSerializer, CommentSerializer,
+                          NewAnnouncementSerializer, NewAssignmentSerializer,
                           NewCommentSerializer, UserSerializer)
 
 
@@ -205,3 +206,29 @@ def user_role(request, code):
         return Response(data={'role': 'student'}, status=status.HTTP_200_OK)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def assignments(request, code):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+
+    if request.method == 'GET':
+        if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        serializer = AssignmentSerializer(classroom.assignment_set.all().order_by('-created_at'), many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        if user != classroom.teacher:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        request.data.update({"classroom": classroom.id})
+
+        serializer = NewAssignmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

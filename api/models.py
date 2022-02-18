@@ -44,3 +44,13 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Assignment(models.Model):
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
+    title = models.CharField(max_length=500)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.title} -  {self.text}'

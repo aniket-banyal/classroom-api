@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.models import Announcement, Classroom, Comment
+from api.models import Announcement, Assignment, Classroom, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -50,3 +50,15 @@ class NewCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('announcement', 'text', 'author')
+
+
+class AssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment
+        fields = ('id', 'title', 'text', 'created_at')
+
+
+class NewAssignmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment
+        fields = ('title', 'text', 'classroom')
