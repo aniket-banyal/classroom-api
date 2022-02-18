@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models import Announcement, Classroom
+from api.models import Announcement, Classroom, Comment
 
 from .serializers import (AnnouncementSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
@@ -141,6 +141,27 @@ def announcement_comments(request, code, id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def announcement_comments_detail(request, code, announcement_id, comment_id):
+    classroom = Classroom.objects.get(code=code)
+
+    announcement = get_object_or_404(Announcement, id=announcement_id)
+    if announcement not in classroom.announcement_set.all():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.announcement != announcement:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if not (user == classroom.teacher or user == comment.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    comment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['PUT', 'DELETE'])
