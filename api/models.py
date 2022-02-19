@@ -51,6 +51,7 @@ class Assignment(models.Model):
     title = models.CharField(max_length=500)
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    due_date_time = models.DateTimeField()
 
     def __str__(self):
         return f'{self.title} -  {self.text}'

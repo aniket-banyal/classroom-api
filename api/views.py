@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -226,6 +228,10 @@ def assignments(request, code):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         request.data.update({"classroom": classroom.id})
+
+        due_date_timestamp = int(request.data['due_date_time'])
+        due_date_time = datetime.fromtimestamp(due_date_timestamp / 1000.0, timezone.utc)
+        request.data.update({"due_date_time": due_date_time})
 
         serializer = NewAssignmentSerializer(data=request.data)
         if serializer.is_valid():
