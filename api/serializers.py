@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.models import Announcement, Assignment, Classroom, Comment
+from api.models import Announcement, Assignment, Classroom, Comment, Submission
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -75,3 +75,11 @@ class NewAssignmentSerializer(serializers.ModelSerializer):
         if value < datetime.now(timezone.utc):
             raise serializers.ValidationError('Due date must be greater than current time')
         return value
+
+
+class SubmissionSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Submission
+        fields = ('id', 'student', 'text', 'created_at')

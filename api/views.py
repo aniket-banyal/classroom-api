@@ -12,7 +12,7 @@ from api.models import Announcement, Assignment, Classroom, Comment
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer, AssignmentSerializer,
                           ClassroomSerializer, CommentSerializer,
                           NewAnnouncementSerializer, NewAssignmentSerializer,
-                          NewCommentSerializer, UserSerializer)
+                          NewCommentSerializer, SubmissionSerializer, UserSerializer)
 
 
 class ListCreateClassroom(APIView):
@@ -255,4 +255,22 @@ def assignment_detail(request, code, assignment_id):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         serializer = AssignmentDetailSerializer(assignment)
+        return Response(serializer.data)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def submissions(request, code, assignment_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+
+    if assignment.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if request.method == 'GET':
+        if user != classroom.teacher:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        serializer = SubmissionSerializer(assignment.submission_set.all(), many=True)
         return Response(serializer.data)
