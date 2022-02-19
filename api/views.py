@@ -7,9 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models import Announcement, Classroom, Comment
+from api.models import Announcement, Assignment, Classroom, Comment
 
-from .serializers import (AnnouncementSerializer, AssignmentSerializer,
+from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer, AssignmentSerializer,
                           ClassroomSerializer, CommentSerializer,
                           NewAnnouncementSerializer, NewAssignmentSerializer,
                           NewCommentSerializer, UserSerializer)
@@ -238,3 +238,21 @@ def assignments(request, code):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def assignment_detail(request, code, assignment_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+
+    if assignment.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if request.method == 'GET':
+        if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        serializer = AssignmentDetailSerializer(assignment)
+        return Response(serializer.data)

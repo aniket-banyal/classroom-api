@@ -14,5 +14,6 @@ urlpatterns = [
     path('classes/<str:code>/announcements/<int:id>/comments', views.announcement_comments, name='announcement_comments'),
     path('classes/<str:code>/announcements/<int:announcement_id>/comments/<int:comment_id>', views.announcement_comments_detail, name='announcement_comments_detail'),
     path('classes/<str:code>/assignments', views.assignments, name='assignments'),
+    path('classes/<str:code>/assignments/<int:assignment_id>', views.assignment_detail, name='assignment_detail'),
     path('join_class', views.join_class, name='join_class'),
 ]
