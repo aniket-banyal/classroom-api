@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -62,3 +64,8 @@ class NewAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
         fields = ('title', 'text', 'classroom', 'due_date_time')
+
+    def validate_due_date_time(self, value):
+        if value < datetime.now(timezone.utc):
+            raise serializers.ValidationError('Due date must be greater than current time')
+        return value
