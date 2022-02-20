@@ -91,3 +91,9 @@ class StudentSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ('student', 'text', 'created_at', 'status')
+
+
+class NewSubmissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = ('text', 'assignment', 'student')

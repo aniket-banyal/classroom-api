@@ -12,7 +12,7 @@ from api.models import Announcement, Assignment, Classroom, Comment
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer, NewCommentSerializer,
+                          NewAssignmentSerializer, NewCommentSerializer, NewSubmissionSerializer,
                           StudentSubmissionSerializer, SubmissionSerializer,
                           UserSerializer)
 
@@ -276,6 +276,19 @@ def submissions(request, code, assignment_id):
 
         serializer = SubmissionSerializer(assignment.submission_set.all(), many=True)
         return Response(serializer.data)
+
+    elif request.method == 'POST':
+        if classroom not in user.enrolled_classrooms.all():
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        request.data.update({"assignment": assignment.id})
+        request.data.update({"student": user.id})
+
+        serializer = NewSubmissionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
