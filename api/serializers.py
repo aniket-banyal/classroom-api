@@ -82,4 +82,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ('id', 'student', 'text', 'created_at')
+        fields = ('id', 'student', 'text', 'created_at', 'status')
+
+
+class StudentSubmissionSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Submission
+        fields = ('student', 'text', 'created_at', 'status')

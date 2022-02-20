@@ -16,5 +16,6 @@ urlpatterns = [
     path('classes/<str:code>/assignments', views.assignments, name='assignments'),
     path('classes/<str:code>/assignments/<int:assignment_id>', views.assignment_detail, name='assignment_detail'),
     path('classes/<str:code>/assignments/<int:assignment_id>/submissions', views.submissions, name='submissions'),
+    path('classes/<str:code>/assignments/<int:assignment_id>/student_submission', views.student_submission, name='student_submission'),
     path('join_class', views.join_class, name='join_class'),
 ]

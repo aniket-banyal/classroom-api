@@ -9,10 +9,12 @@ from rest_framework.views import APIView
 
 from api.models import Announcement, Assignment, Classroom, Comment
 
-from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer, AssignmentSerializer,
-                          ClassroomSerializer, CommentSerializer,
-                          NewAnnouncementSerializer, NewAssignmentSerializer,
-                          NewCommentSerializer, SubmissionSerializer, UserSerializer)
+from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
+                          AssignmentSerializer, ClassroomSerializer,
+                          CommentSerializer, NewAnnouncementSerializer,
+                          NewAssignmentSerializer, NewCommentSerializer,
+                          StudentSubmissionSerializer, SubmissionSerializer,
+                          UserSerializer)
 
 
 class ListCreateClassroom(APIView):
@@ -274,3 +276,35 @@ def submissions(request, code, assignment_id):
 
         serializer = SubmissionSerializer(assignment.submission_set.all(), many=True)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def student_submission(request, code, assignment_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+
+    if assignment.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if request.method == 'GET':
+        if classroom not in user.enrolled_classrooms.all():
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        submission = get_user_submission(assignment, user)
+        if submission is None:
+            if assignment.due_date_time > datetime.now(timezone.utc):
+                return Response({'status': 'Assigned'})
+            return Response({'status': 'Missing'})
+
+        serializer = StudentSubmissionSerializer(submission)
+        return Response(serializer.data)
+
+
+def get_user_submission(assignment, user):
+    all_submissions = assignment.submission_set.all()
+    for submission in all_submissions:
+        if submission.student == user:
+            return submission
+    return None

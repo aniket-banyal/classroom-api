@@ -63,5 +63,11 @@ class Submission(models.Model):
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def status(self):
+        if self.created_at <= self.assignment.due_date_time:
+            return 'Done'
+        return 'Submitted Late'
+
     def __str__(self):
         return f'{self.text}'
