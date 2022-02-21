@@ -242,7 +242,7 @@ def assignments(request, code):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'DELETE'])
+@api_view(['GET', 'DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
 def assignment_detail(request, code, assignment_id):
     classroom = get_object_or_404(Classroom, code=code)
@@ -258,6 +258,19 @@ def assignment_detail(request, code, assignment_id):
 
         serializer = AssignmentDetailSerializer(assignment)
         return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        request.data.update({"classroom": classroom.id})
+
+        due_date_timestamp = int(request.data['due_date_time'])
+        due_date_time = datetime.fromtimestamp(due_date_timestamp / 1000.0, timezone.utc)
+        request.data.update({"due_date_time": due_date_time})
+
+        serializer = NewAssignmentSerializer(assignment, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(AssignmentSerializer(assignment).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
         if user != classroom.teacher:
