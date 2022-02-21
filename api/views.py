@@ -242,7 +242,7 @@ def assignments(request, code):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def assignment_detail(request, code, assignment_id):
     classroom = get_object_or_404(Classroom, code=code)
@@ -258,6 +258,13 @@ def assignment_detail(request, code, assignment_id):
 
         serializer = AssignmentDetailSerializer(assignment)
         return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        if user != classroom.teacher:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        assignment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET', 'POST'])
