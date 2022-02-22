@@ -40,6 +40,12 @@ class ClassroomSerializer(serializers.ModelSerializer):
         fields = ('teacher', 'name', 'subject', 'code')
 
 
+class NewClassroomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Classroom
+        fields = ('teacher', 'name', 'subject')
+
+
 class CommentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
 

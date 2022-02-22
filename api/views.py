@@ -12,7 +12,7 @@ from api.models import Announcement, Assignment, Classroom, Comment
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer, NewCommentSerializer, NewSubmissionSerializer,
+                          NewAssignmentSerializer, NewClassroomSerializer, NewCommentSerializer, NewSubmissionSerializer,
                           StudentSubmissionSerializer, TeacherSubmissionSerializer,
                           UserSerializer)
 
@@ -28,10 +28,10 @@ class ListCreateClassroom(APIView):
     def post(self, request):
         request.data.update({"teacher": request.user.id})
 
-        serializer = ClassroomSerializer(data=request.data)
+        serializer = NewClassroomSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(ClassroomSerializer(serializer.instance).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
