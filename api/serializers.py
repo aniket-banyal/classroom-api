@@ -63,13 +63,13 @@ class NewCommentSerializer(serializers.ModelSerializer):
 class AssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ('id', 'title', 'created_at', 'due_date_time')
+        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time')
 
 
 class AssignmentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ('title', 'text', 'created_at', 'due_date_time')
+        fields = ('title', 'text', 'created_at', 'edited_at', 'due_date_time')
 
 
 class NewAssignmentSerializer(serializers.ModelSerializer):
