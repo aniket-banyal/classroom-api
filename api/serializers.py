@@ -69,13 +69,13 @@ class AssignmentSerializer(serializers.ModelSerializer):
 class AssignmentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ('title', 'text', 'created_at', 'edited_at', 'due_date_time')
+        fields = ('title', 'text', 'created_at', 'edited_at', 'due_date_time', 'points')
 
 
 class NewAssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ('title', 'text', 'classroom', 'due_date_time')
+        fields = ('title', 'text', 'classroom', 'due_date_time', 'points')
 
     def validate_due_date_time(self, value):
         if value < datetime.now(timezone.utc):
