@@ -61,7 +61,7 @@ class Assignment(models.Model):
 class Submission(models.Model):
     student = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
-    text = models.TextField()
+    url = models.URLField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -71,4 +71,4 @@ class Submission(models.Model):
         return 'Submitted Late'
 
     def __str__(self):
-        return f'{self.text}'
+        return f'{self.url}'
