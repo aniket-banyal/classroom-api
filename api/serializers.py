@@ -90,6 +90,11 @@ class SubmissionSerializer(serializers.ModelSerializer):
         model = Submission
         fields = ('id', 'student', 'url', 'created_at', 'points')
 
+    def validate_points(self, value):
+        if value > self.instance.assignment.points:
+            raise serializers.ValidationError("Sumbission's points must be less than or equal to assignment's points")
+        return value
+
 
 class TeacherSubmissionSerializer(serializers.Serializer):
     student = UserSerializer()
