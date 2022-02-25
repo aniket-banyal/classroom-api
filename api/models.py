@@ -68,6 +68,9 @@ class Submission(models.Model):
 
     @property
     def status(self):
+        if self.points:
+            return 'Graded'
+
         if self.created_at <= self.assignment.due_date_time:
             return 'Done'
         return 'Submitted Late'

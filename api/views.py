@@ -7,14 +7,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.models import Announcement, Assignment, Classroom, Comment
+from api.models import Announcement, Assignment, Classroom, Comment, Submission
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer, NewClassroomSerializer, NewCommentSerializer, NewSubmissionSerializer,
-                          StudentSubmissionSerializer, TeacherSubmissionSerializer,
-                          UserSerializer)
+                          NewAssignmentSerializer, NewClassroomSerializer,
+                          NewCommentSerializer, NewSubmissionSerializer,
+                          StudentSubmissionSerializer, SubmissionSerializer,
+                          TeacherSubmissionSerializer, UserSerializer)
 
 
 class ListCreateClassroom(APIView):
@@ -360,6 +361,28 @@ def student_submission(request, code, assignment_id):
 
         serializer = StudentSubmissionSerializer(submission)
         return Response(serializer.data)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def submissions_detail(request, code, assignment_id, submission_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+
+    if assignment.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if request.method == 'PUT':
+        if user != classroom.teacher:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        submission = get_object_or_404(Submission, id=submission_id)
+        serializer = SubmissionSerializer(instance=submission, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_user_submission(assignment, user):
