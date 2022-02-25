@@ -64,6 +64,7 @@ class Submission(models.Model):
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     url = models.URLField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
+    points = models.FloatField(null=True, blank=True)
 
     @property
     def status(self):

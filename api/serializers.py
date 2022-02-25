@@ -88,7 +88,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ('student', 'url', 'created_at')
+        fields = ('student', 'url', 'created_at', 'points')
 
 
 class TeacherSubmissionSerializer(serializers.Serializer):
@@ -102,7 +102,7 @@ class StudentSubmissionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ('student', 'url', 'created_at', 'status')
+        fields = ('student', 'url', 'created_at', 'status', 'points')
 
 
 class NewSubmissionSerializer(serializers.ModelSerializer):
