@@ -378,11 +378,11 @@ def submissions_detail(request, code, assignment_id, submission_id):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         submission = get_object_or_404(Submission, id=submission_id)
-        serializer = SubmissionSerializer(instance=submission, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        submission.points = request.data['points']
+        submission.save()
+
+        serializer = SubmissionSerializer(instance=submission)
+        return Response(serializer.data)
 
 
 def get_user_submission(assignment, user):
