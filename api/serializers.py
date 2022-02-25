@@ -92,7 +92,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
     def validate_points(self, value):
         if value > self.instance.assignment.points:
-            raise serializers.ValidationError("Sumbission's points must be less than or equal to assignment's points")
+            raise serializers.ValidationError("Submission's points must be less than or equal to assignment's points")
         return value
 
 
