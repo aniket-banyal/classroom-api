@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -133,6 +134,23 @@ def students(request, code):
 
     serializer = UserSerializer(classroom.students.all(), many=True)
     return Response(serializer.data)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def students_detail(request, code, student_email):
+    classroom = get_object_or_404(Classroom, code=code)
+    student = get_object_or_404(get_user_model(), email=student_email)
+    user = request.user
+
+    if user != classroom.teacher:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    if student not in classroom.students.all():
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    classroom.students.remove(student)
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET', 'POST'])
