@@ -381,7 +381,7 @@ def student_submission(request, code, assignment_id):
         return Response(serializer.data)
 
 
-@api_view(['PUT'])
+@api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def submissions_detail(request, code, assignment_id, submission_id):
     classroom = get_object_or_404(Classroom, code=code)
@@ -391,16 +391,16 @@ def submissions_detail(request, code, assignment_id, submission_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     user = request.user
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         if user != classroom.teacher:
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         submission = get_object_or_404(Submission, id=submission_id)
-        submission.points = request.data['points']
-        submission.save()
-
-        serializer = SubmissionSerializer(instance=submission)
-        return Response(serializer.data)
+        serializer = SubmissionSerializer(submission, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_user_submission(assignment, user):
