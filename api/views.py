@@ -6,35 +6,41 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
 
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer, NewClassroomSerializer,
+                          NewAssignmentSerializer,
                           NewCommentSerializer, NewSubmissionSerializer,
                           StudentSubmissionSerializer, SubmissionSerializer,
                           TeacherSubmissionSerializer, UserSerializer)
 
 
-class ListCreateClassroom(APIView):
+class ListCreateTeachingClassroom(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = ClassroomSerializer
 
-    def get(self, request):
-        classrooms = Classroom.objects.filter(teacher=request.user)
-        serializer = ClassroomSerializer(classrooms, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Classroom.objects.filter(teacher=self.request.user)
 
-    def post(self, request):
-        request.data.update({"teacher": request.user.id})
+    def perform_create(self, serializer):
+        serializer.save(teacher=self.request.user)
 
-        serializer = NewClassroomSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(ClassroomSerializer(serializer.instance).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def classes_detail(request, code):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+
+    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
+        serializer = ClassroomSerializer(classroom)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['POST'])
@@ -84,19 +90,6 @@ def classes(request):
 def user_details(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def classes_detail(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-
-    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
-        serializer = ClassroomSerializer(classroom)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    return Response(status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['GET', 'POST'])

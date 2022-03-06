@@ -17,6 +17,15 @@ class UserSerializer(serializers.ModelSerializer):
         return user.first_name + ' ' + user.last_name
 
 
+class ClassroomSerializer(serializers.ModelSerializer):
+    code = serializers.CharField(read_only=True)
+    teacher = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Classroom
+        fields = ('teacher', 'name', 'subject', 'code')
+
+
 class AnnouncementSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
 
@@ -29,21 +38,6 @@ class NewAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
         fields = ('text', 'classroom', 'author')
-
-
-class ClassroomSerializer(serializers.ModelSerializer):
-    code = serializers.CharField(read_only=True)
-    teacher = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Classroom
-        fields = ('teacher', 'name', 'subject', 'code')
-
-
-class NewClassroomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Classroom
-        fields = ('teacher', 'name', 'subject')
 
 
 class CommentSerializer(serializers.ModelSerializer):
