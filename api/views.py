@@ -58,23 +58,21 @@ def join_class(request):
 
 class ClassesEnrolled(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    serializer = ClassroomSerializer
+    serializer_class = ClassroomSerializer
 
     def get_queryset(self):
         return self.request.user.enrolled_classrooms.all()
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def classes(request):
-    user = request.user
+class AllClasses(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ClassroomSerializer
 
-    classes_enrolled = user.enrolled_classrooms.all()
-    classes_teaching = Classroom.objects.filter(teacher=request.user)
-    all_classes = classes_enrolled.union(classes_teaching)
-    serializer = ClassroomSerializer(all_classes, many=True)
-
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        user = self.request.user
+        classes_enrolled = user.enrolled_classrooms.all()
+        classes_teaching = Classroom.objects.filter(teacher=user)
+        return classes_enrolled.union(classes_teaching)
 
 
 @api_view(['GET'])
