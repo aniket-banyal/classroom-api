@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
+from api.permissions import IsTeacherOrStudent
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
@@ -30,17 +31,12 @@ class ListCreateTeachingClassroom(generics.ListCreateAPIView):
         serializer.save(teacher=self.request.user)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def classes_detail(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
+class ClassroomDetail(generics.RetrieveAPIView):
+    queryset = Classroom.objects.all()
+    lookup_field = 'code'
 
-    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
-        serializer = ClassroomSerializer(classroom)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    return Response(status=status.HTTP_403_FORBIDDEN)
+    permission_classes = [IsAuthenticated, IsTeacherOrStudent]
+    serializer_class = ClassroomSerializer
 
 
 @api_view(['POST'])
