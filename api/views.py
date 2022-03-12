@@ -16,7 +16,7 @@ from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
                           NewAssignmentSerializer,
                           NewCommentSerializer, NewSubmissionSerializer,
-                          StudentSubmissionSerializer, SubmissionSerializer,
+                          StudentSubmissionSerializer, StudentSubmissionsSerializer, SubmissionSerializer,
                           TeacherSubmissionSerializer, UserSerializer)
 
 
@@ -392,3 +392,31 @@ def get_user_submission(assignment, user):
         if submission.student == user:
             return submission
     return None
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_student_submissions(request, code, student_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+    if user != classroom.teacher:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == 'GET':
+        submissions = []
+        student = get_object_or_404(get_user_model(), id=student_id)
+        for assignment in classroom.assignment_set.all():
+            submission = get_user_submission(assignment, student)
+            serializer = get_student_submission_data(assignment, student, submission)
+            submissions.append(serializer.data)
+
+        return Response(submissions)
+
+
+def get_student_submission_data(assignment, student, submission):
+    if submission is not None:
+        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': submission.status, 'assignment': assignment})
+
+    if assignment.due_date_time > datetime.now(timezone.utc):
+        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Assigned', 'assignment': assignment})
+    return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Missing', 'assignment': assignment})

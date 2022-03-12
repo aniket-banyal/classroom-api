@@ -21,4 +21,5 @@ urlpatterns = [
     path('classes/<str:code>/assignments/<int:assignment_id>/submissions/<int:submission_id>', views.submissions_detail, name='submissions_detail'),
     path('classes/<str:code>/assignments/<int:assignment_id>/student_submission', views.student_submission, name='student_submission'),
     path('join_class', views.join_class, name='join_class'),
+    path('classes/<str:code>/student_submissions/<int:student_id>', views.get_student_submissions, name='student_submissions'),
 ]

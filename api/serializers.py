@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('name', 'email')
+        fields = ('id', 'name', 'email')
 
     def get_name(self, user):
         return user.first_name + ' ' + user.last_name
@@ -57,7 +57,7 @@ class NewCommentSerializer(serializers.ModelSerializer):
 class AssignmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment
-        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time')
+        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time', 'points')
 
 
 class AssignmentDetailSerializer(serializers.ModelSerializer):
@@ -94,6 +94,12 @@ class TeacherSubmissionSerializer(serializers.Serializer):
     student = UserSerializer()
     submission = SubmissionSerializer()
     status = serializers.CharField()
+
+
+class StudentSubmissionsSerializer(serializers.Serializer):
+    submission = SubmissionSerializer()
+    status = serializers.CharField()
+    assignment = AssignmentSerializer()
 
 
 class StudentSubmissionSerializer(serializers.ModelSerializer):
