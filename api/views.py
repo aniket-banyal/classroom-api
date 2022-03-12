@@ -106,6 +106,78 @@ def announcements(request, code):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def announcement_detail(request, code, id):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+    if not (user == classroom.teacher or user == announcement.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    announcement = get_object_or_404(Announcement, id=id)
+    if announcement.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(AnnouncementSerializer(announcement).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        announcement.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def announcement_comments(request, code, id):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    announcement = get_object_or_404(Announcement, id=id)
+    if announcement.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        comments = announcement.comment_set.all().order_by('created_at')
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        request.data.update({"announcement": announcement.id})
+        request.data.update({"author": user.id})
+
+        serializer = NewCommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(CommentSerializer(serializer.instance).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def announcement_comments_detail(request, code, announcement_id, comment_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    user = request.user
+    if not (user == classroom.teacher or user == comment.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
+
+    announcement = get_object_or_404(Announcement, id=announcement_id)
+    if announcement.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    comment = get_object_or_404(Comment, id=comment_id)
+    if comment.announcement != announcement:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    comment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def students(request, code):
@@ -134,82 +206,6 @@ def students_detail(request, code, student_email):
 
     classroom.students.remove(student)
     return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def announcement_comments(request, code, id):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-
-    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    announcement = get_object_or_404(Announcement, id=id)
-    # announcement should be part of this classroom
-    if announcement.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
-        comments = announcement.comment_set.all().order_by('created_at')
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        request.data.update({"announcement": announcement.id})
-        request.data.update({"author": user.id})
-
-        serializer = NewCommentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(CommentSerializer(serializer.instance).data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def announcement_comments_detail(request, code, announcement_id, comment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    announcement = get_object_or_404(Announcement, id=announcement_id)
-
-    if announcement.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    comment = get_object_or_404(Comment, id=comment_id)
-    if comment.announcement != announcement:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if not (user == classroom.teacher or user == comment.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def announcement_detail(request, code, id):
-    classroom = get_object_or_404(Classroom, code=code)
-    announcement = get_object_or_404(Announcement, id=id)
-
-    if announcement.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if not (user == classroom.teacher or user == announcement.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    if request.method == 'PUT':
-        serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(AnnouncementSerializer(announcement).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'DELETE':
-        announcement.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
