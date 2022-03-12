@@ -408,7 +408,7 @@ def get_student_submissions(request, code, student_id):
     if request.method == 'GET':
         submissions = []
         student = get_object_or_404(get_user_model(), id=student_id)
-        for assignment in classroom.assignment_set.all():
+        for assignment in classroom.assignment_set.all().order_by('-created_at'):
             submission = get_user_submission(assignment, student)
             serializer = get_student_submission_data(assignment, student, submission)
             submissions.append(serializer.data)
