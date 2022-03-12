@@ -242,7 +242,11 @@ def assignments(request, code):
 
         request.data.update({"classroom": classroom.id})
 
-        due_date_timestamp = int(request.data['due_date_time'])
+        try:
+            due_date_timestamp = int(request.data['due_date_time'])
+        except TypeError:
+            return Response({'due_date_time': ['Due date time is of invalid type']}, status=status.HTTP_400_BAD_REQUEST)
+
         due_date_time = datetime.fromtimestamp(due_date_timestamp / 1000.0, timezone.utc)
         request.data.update({"due_date_time": due_date_time})
 
