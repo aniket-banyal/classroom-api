@@ -2,21 +2,20 @@ from datetime import datetime, timezone
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import generics
 
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
-from api.permissions import IsTeacherOrStudent
+from api.permissions import IsTeacherOrStudentReadOnly
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           AssignmentSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer,
-                          NewCommentSerializer, NewSubmissionSerializer,
-                          StudentSubmissionSerializer, StudentSubmissionsSerializer, SubmissionSerializer,
+                          NewAssignmentSerializer, NewCommentSerializer,
+                          NewSubmissionSerializer, StudentSubmissionSerializer,
+                          StudentSubmissionsSerializer, SubmissionSerializer,
                           TeacherSubmissionSerializer, UserSerializer)
 
 
@@ -31,11 +30,11 @@ class ListCreateTeachingClassroom(generics.ListCreateAPIView):
         serializer.save(teacher=self.request.user)
 
 
-class ClassroomDetail(generics.RetrieveAPIView):
+class ClassroomDetail(generics.RetrieveDestroyAPIView):
     queryset = Classroom.objects.all()
     lookup_field = 'code'
 
-    permission_classes = [IsAuthenticated, IsTeacherOrStudent]
+    permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnly]
     serializer_class = ClassroomSerializer
 
 
@@ -195,18 +194,19 @@ def students(request, code):
 @permission_classes([IsAuthenticated])
 def students_detail(request, code, student_id):
     classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-    if user != classroom.teacher:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
     student = get_object_or_404(get_user_model(), id=student_id)
     if student not in classroom.students.all():
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+    user = request.user
     if request.method == 'GET':
+        if user != classroom.teacher:
+            return Response(status=status.HTTP_403_FORBIDDEN)
         return Response(UserSerializer(student).data, status=status.HTTP_200_OK)
 
     if request.method == 'DELETE':
+        if not(user == classroom.teacher or user == student):
+            return Response(status=status.HTTP_403_FORBIDDEN)
         classroom.students.remove(student)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
