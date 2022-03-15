@@ -13,5 +13,5 @@ class IsTeacherOrStudentReadOnly(BasePermission):
         if request.method == 'GET':
             return user == obj.teacher or obj in user.enrolled_classrooms.all()
 
-        if request.method == 'DELETE':
+        if request.method == 'DELETE' or request.method == 'PUT':
             return user == obj.teacher

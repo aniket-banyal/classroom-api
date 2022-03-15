@@ -30,7 +30,7 @@ class ListCreateTeachingClassroom(generics.ListCreateAPIView):
         serializer.save(teacher=self.request.user)
 
 
-class ClassroomDetail(generics.RetrieveDestroyAPIView):
+class ClassroomDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Classroom.objects.all()
     lookup_field = 'code'
 
