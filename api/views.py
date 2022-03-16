@@ -109,13 +109,13 @@ def announcements(request, code):
 @permission_classes([IsAuthenticated])
 def announcement_detail(request, code, id):
     classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-    if not (user == classroom.teacher or user == announcement.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
     announcement = get_object_or_404(Announcement, id=id)
     if announcement.classroom != classroom:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if not (user == classroom.teacher or user == announcement.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
         serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
