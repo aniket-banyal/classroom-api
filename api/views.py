@@ -161,17 +161,18 @@ def announcement_comments(request, code, id):
 @permission_classes([IsAuthenticated])
 def announcement_comments_detail(request, code, announcement_id, comment_id):
     classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-    if not (user == classroom.teacher or user == comment.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
+    comment = get_object_or_404(Comment, id=comment_id)
     announcement = get_object_or_404(Announcement, id=announcement_id)
+
     if announcement.classroom != classroom:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    comment = get_object_or_404(Comment, id=comment_id)
     if comment.announcement != announcement:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if not (user == classroom.teacher or user == comment.author):
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
     comment.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
