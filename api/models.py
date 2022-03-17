@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.crypto import get_random_string
@@ -20,6 +21,17 @@ class Classroom(models.Model):
                     break
 
         super().save(*args, **kwargs)
+
+    def get_upcoming_assignments(self):
+        all_assignments = self.assignment_set.all().order_by('-due_date_time')
+        upcoming_assignments = [assignment for assignment in all_assignments
+                                if assignment.due_date_time > datetime.now(timezone.utc)]
+
+        if len(upcoming_assignments) > 0:
+            upcoming_assignments.sort(key=lambda assignment: assignment.due_date_time)
+            return upcoming_assignments[0]
+
+        return None
 
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'

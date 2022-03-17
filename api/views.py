@@ -237,6 +237,14 @@ def assignments(request, code):
         if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+        upcoming = request.query_params.get('upcoming')
+        if upcoming:
+            upcoming_assignment = classroom.get_upcoming_assignments()
+            if upcoming_assignment is not None:
+                serializer = AssignmentSerializer(upcoming_assignment)
+                return Response(serializer.data)
+            return Response({'data': None})
+
         serializer = AssignmentSerializer(classroom.assignment_set.all().order_by('-created_at'), many=True)
         return Response(serializer.data)
 
