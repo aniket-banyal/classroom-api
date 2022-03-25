@@ -33,6 +33,9 @@ class Classroom(models.Model):
 
         return None
 
+    def get_announcements(self):
+        return self.announcement_set.all().order_by('-created_at')
+
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'
 
