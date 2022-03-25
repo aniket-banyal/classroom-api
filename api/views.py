@@ -244,7 +244,7 @@ def assignments(request, code):
                 return Response(serializer.data)
             return Response({'data': None})
 
-        serializer = AssignmentSerializer(classroom.assignment_set.all().order_by('-created_at'), many=True)
+        serializer = AssignmentSerializer(classroom.get_assignments(), many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
