@@ -47,6 +47,9 @@ class Announcement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     edited_at = models.DateTimeField(auto_now=True)
 
+    def get_comments(self):
+        return self.comment_set.all().order_by('created_at')
+
     def __str__(self):
         return self.text
 

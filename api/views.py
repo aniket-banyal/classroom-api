@@ -142,8 +142,7 @@ def announcement_comments(request, code, id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        comments = announcement.comment_set.all().order_by('created_at')
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(announcement.get_comments(), many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
