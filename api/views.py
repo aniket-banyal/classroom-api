@@ -186,7 +186,7 @@ def students(request, code):
     if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    serializer = UserSerializer(classroom.students.all(), many=True)
+    serializer = UserSerializer(classroom.get_all_students(), many=True)
     return Response(serializer.data)
 
 

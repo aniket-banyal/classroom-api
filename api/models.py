@@ -39,6 +39,9 @@ class Classroom(models.Model):
     def get_assignments(self):
         return self.assignment_set.all().order_by('-created_at')
 
+    def get_all_students(self):
+        return self.students.all()
+
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'
 
