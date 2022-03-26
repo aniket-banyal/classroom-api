@@ -42,6 +42,15 @@ class Classroom(models.Model):
     def get_all_students(self):
         return self.students.all()
 
+    def is_user_a_teacher(self, user):
+        return user == self.teacher
+
+    def is_user_a_student(self, user):
+        return user in self.students.all()
+
+    def is_user_part_of_classroom(self, user):
+        return self.is_user_a_student(user) or self.is_user_a_teacher(user)
+
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'
 

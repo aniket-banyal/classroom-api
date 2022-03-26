@@ -46,7 +46,7 @@ def join_class(request):
 
     # check is user is already part of this classroom as a Teacher or Student
     user = request.user
-    if user == classroom.teacher or classroom in user.enrolled_classrooms.all():
+    if classroom.is_user_part_of_classroom(user):
         return Response(status=status.HTTP_409_CONFLICT)
 
     classroom.students.add(user)
@@ -87,7 +87,7 @@ def announcements(request, code):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
 
-    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+    if not classroom.is_user_part_of_classroom(user):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
@@ -114,7 +114,7 @@ def announcement_detail(request, code, id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     user = request.user
-    if not (user == classroom.teacher or user == announcement.author):
+    if not (classroom.is_user_a_teacher(user) or user == announcement.author):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
@@ -134,7 +134,7 @@ def announcement_detail(request, code, id):
 def announcement_comments(request, code, id):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
-    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+    if not classroom.is_user_part_of_classroom(user):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     announcement = get_object_or_404(Announcement, id=id)
@@ -170,7 +170,7 @@ def announcement_comments_detail(request, code, announcement_id, comment_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     user = request.user
-    if not (user == classroom.teacher or user == comment.author):
+    if not (classroom.is_user_a_teacher(user) or user == comment.author):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     comment.delete()
@@ -183,7 +183,7 @@ def students(request, code):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
 
-    if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+    if not classroom.is_user_part_of_classroom(user):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     serializer = UserSerializer(classroom.get_all_students(), many=True)
@@ -200,12 +200,12 @@ def students_detail(request, code, student_id):
 
     user = request.user
     if request.method == 'GET':
-        if user != classroom.teacher:
+        if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
         return Response(UserSerializer(student).data, status=status.HTTP_200_OK)
 
     if request.method == 'DELETE':
-        if not(user == classroom.teacher or user == student):
+        if not(classroom.is_user_a_teacher(user) or user == student):
             return Response(status=status.HTTP_403_FORBIDDEN)
         classroom.students.remove(student)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -217,10 +217,10 @@ def user_role(request, code):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
 
-    if user == classroom.teacher:
+    if classroom.is_user_a_teacher(user):
         return Response(data={'role': 'teacher'}, status=status.HTTP_200_OK)
 
-    if classroom in user.enrolled_classrooms.all():
+    if classroom.is_user_a_student(user):
         return Response(data={'role': 'student'}, status=status.HTTP_200_OK)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
@@ -233,7 +233,7 @@ def assignments(request, code):
     user = request.user
 
     if request.method == 'GET':
-        if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+        if not classroom.is_user_part_of_classroom(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         upcoming = request.query_params.get('upcoming')
@@ -248,7 +248,7 @@ def assignments(request, code):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        if user != classroom.teacher:
+        if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         request.data.update({"classroom": classroom.id})
@@ -279,13 +279,16 @@ def assignment_detail(request, code, assignment_id):
 
     user = request.user
     if request.method == 'GET':
-        if not (user == classroom.teacher or classroom in user.enrolled_classrooms.all()):
+        if not classroom.is_user_part_of_classroom(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         serializer = AssignmentDetailSerializer(assignment)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
+        if not classroom.is_user_a_teacher(user):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         request.data.update({"classroom": classroom.id})
 
         due_date_timestamp = int(request.data['due_date_time'])
@@ -299,7 +302,7 @@ def assignment_detail(request, code, assignment_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        if user != classroom.teacher:
+        if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         assignment.delete()
@@ -317,7 +320,7 @@ def submissions(request, code, assignment_id):
 
     user = request.user
     if request.method == 'GET':
-        if user != classroom.teacher:
+        if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         data = []
@@ -329,7 +332,7 @@ def submissions(request, code, assignment_id):
         return Response(data)
 
     elif request.method == 'POST':
-        if classroom not in user.enrolled_classrooms.all():
+        if not classroom.is_user_a_student(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         request.data.update({"assignment": assignment.id})
@@ -362,7 +365,7 @@ def student_submission(request, code, assignment_id):
 
     user = request.user
     if request.method == 'GET':
-        if classroom not in user.enrolled_classrooms.all():
+        if not classroom.is_user_a_student(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         submission = get_user_submission(assignment, user)
@@ -386,7 +389,7 @@ def submissions_detail(request, code, assignment_id, submission_id):
 
     user = request.user
     if request.method == 'PATCH':
-        if user != classroom.teacher:
+        if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         submission = get_object_or_404(Submission, id=submission_id)
@@ -410,7 +413,7 @@ def get_user_submission(assignment, user):
 def get_student_submissions(request, code, student_id):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
-    if user != classroom.teacher:
+    if not classroom.is_user_a_teacher(user):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
