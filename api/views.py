@@ -173,8 +173,9 @@ def announcement_comments_detail(request, code, announcement_id, comment_id):
     if not (classroom.is_user_a_teacher(user) or user == comment.author):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    comment.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'DELETE':
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
