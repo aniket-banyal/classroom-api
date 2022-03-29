@@ -76,6 +76,11 @@ class NewAssignmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Due date must be greater than current time')
         return value
 
+    def validate_points(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Points must be greater than or equal to Zero')
+        return value
+
 
 class SubmissionSerializer(serializers.ModelSerializer):
     student = UserSerializer(read_only=True)
