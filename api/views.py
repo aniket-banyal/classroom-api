@@ -6,6 +6,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from api.helpers import get_student_submission_data, get_submission_data, get_user_submission
 
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
 from api.permissions import IsTeacherOrStudentReadOnly
@@ -15,8 +16,7 @@ from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
                           NewAssignmentSerializer, NewCommentSerializer,
                           NewSubmissionSerializer, StudentSubmissionSerializer,
-                          StudentSubmissionsSerializer, SubmissionSerializer,
-                          TeacherSubmissionSerializer, UserSerializer)
+                          SubmissionSerializer, UserSerializer)
 
 
 class ListCreateTeachingClassroom(generics.ListCreateAPIView):
@@ -346,15 +346,6 @@ def submissions(request, code, assignment_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def get_submission_data(due_date_time, student, submission):
-    if submission is not None:
-        return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': submission.status})
-
-    if due_date_time > datetime.now(timezone.utc):
-        return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': 'Assigned'})
-    return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': 'Missing'})
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def student_submission(request, code, assignment_id):
@@ -401,14 +392,6 @@ def submissions_detail(request, code, assignment_id, submission_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def get_user_submission(assignment, user):
-    all_submissions = assignment.submission_set.all()
-    for submission in all_submissions:
-        if submission.student == user:
-            return submission
-    return None
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_student_submissions(request, code, student_id):
@@ -426,12 +409,3 @@ def get_student_submissions(request, code, student_id):
             submissions.append(serializer.data)
 
         return Response(submissions)
-
-
-def get_student_submission_data(assignment, student, submission):
-    if submission is not None:
-        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': submission.status, 'assignment': assignment})
-
-    if assignment.due_date_time > datetime.now(timezone.utc):
-        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Assigned', 'assignment': assignment})
-    return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Missing', 'assignment': assignment})
