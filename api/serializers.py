@@ -82,6 +82,14 @@ class NewAssignmentSerializer(serializers.ModelSerializer):
         return value
 
 
+class AssignmentWithClassroomSerializer(serializers.ModelSerializer):
+    classroom = ClassroomSerializer()
+
+    class Meta:
+        model = Assignment
+        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time', 'points', 'classroom')
+
+
 class SubmissionSerializer(serializers.ModelSerializer):
     student = UserSerializer(read_only=True)
 

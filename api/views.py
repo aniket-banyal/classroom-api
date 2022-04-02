@@ -12,7 +12,7 @@ from api.models import Announcement, Assignment, Classroom, Comment, Submission
 from api.permissions import IsTeacherOrStudentReadOnly
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
-                          AssignmentSerializer, ClassroomSerializer,
+                          AssignmentSerializer, AssignmentWithClassroomSerializer, ClassroomSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
                           NewAssignmentSerializer, NewCommentSerializer,
                           NewSubmissionSerializer, StudentSubmissionSerializer,
@@ -409,3 +409,23 @@ def get_student_submissions(request, code, student_id):
             submissions.append(serializer.data)
 
         return Response(submissions)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def all_assignments(request):
+    user = request.user
+
+    if request.method == 'GET':
+        all_assignments = []
+        for classroom in user.enrolled_classrooms.all():
+            assignments = classroom.get_assignments()
+
+            for assignment in assignments:
+                submission = get_user_submission(assignment, user)
+                if submission is None:
+                    if assignment.due_date_time > datetime.now(timezone.utc):
+                        all_assignments.append(assignment)
+
+        serializer = AssignmentWithClassroomSerializer(all_assignments, many=True)
+        return Response(serializer.data)
