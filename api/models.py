@@ -88,6 +88,17 @@ class Assignment(models.Model):
     due_date_time = models.DateTimeField()
     points = models.PositiveSmallIntegerField()
 
+    def get_submissions(self):
+        return [submission for submission in self.submission_set.all()]
+
+    def get_submissions_to_review(self):
+        return [submission for submission in self.submission_set.all()
+                if submission.status == 'Done' or submission.status == 'Submitted Late']
+
+    def get_submissions_graded(self):
+        return [submission for submission in self.submission_set.all()
+                if submission.status == 'Graded']
+
     def __str__(self):
         return f'{self.title} -  {self.text}'
 

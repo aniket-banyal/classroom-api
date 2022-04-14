@@ -16,7 +16,7 @@ from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
                           CommentSerializer, NewAnnouncementSerializer,
                           NewAssignmentSerializer, NewCommentSerializer,
                           NewSubmissionSerializer, StudentSubmissionSerializer,
-                          SubmissionSerializer, UserSerializer)
+                          SubmissionSerializer, ToReviewSerializer, UserSerializer)
 
 
 class ListCreateTeachingClassroom(generics.ListCreateAPIView):
@@ -428,4 +428,24 @@ def all_assignments(request):
                         all_assignments.append(assignment)
 
         serializer = AssignmentWithClassroomSerializer(all_assignments, many=True)
+        return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def all_to_review(request):
+    user = request.user
+
+    if request.method == 'GET':
+        data = []
+        for classroom in user.classroom_set.all():
+            assignments = classroom.get_assignments()
+            for assignment in assignments:
+                num_turned_in = len(assignment.get_submissions_to_review())
+                num_graded = len(assignment.get_submissions_graded())
+                total_submissions = len(assignment.get_submissions())
+                if num_graded < total_submissions:
+                    data.append({'assignment': assignment, 'turned_in': num_turned_in, 'graded': num_graded})
+
+        serializer = ToReviewSerializer(data, many=True)
         return Response(serializer.data)

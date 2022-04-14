@@ -127,3 +127,9 @@ class NewSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Submission
         fields = ('url', 'assignment', 'student')
+
+
+class ToReviewSerializer(serializers.Serializer):
+    assignment = AssignmentWithClassroomSerializer()
+    turned_in = serializers.IntegerField(min_value=0)
+    graded = serializers.IntegerField(min_value=0)
