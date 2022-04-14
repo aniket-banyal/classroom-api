@@ -336,6 +336,10 @@ def submissions(request, code, assignment_id):
         if not classroom.is_user_a_student(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+        # check if user has already submitted submission
+        if assignment.get_student_submission(user) is not None:
+            return Response(status=status.HTTP_409_CONFLICT)
+
         request.data.update({"assignment": assignment.id})
         request.data.update({"student": user.id})
 

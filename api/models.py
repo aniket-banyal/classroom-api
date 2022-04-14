@@ -99,6 +99,12 @@ class Assignment(models.Model):
         return [submission for submission in self.submission_set.all()
                 if submission.status == 'Graded']
 
+    def get_student_submission(self, user):
+        for submission in self.submission_set.all():
+            if submission.student == user:
+                return submission
+        return None
+
     def __str__(self):
         return f'{self.title} -  {self.text}'
 
