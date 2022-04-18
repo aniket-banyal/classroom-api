@@ -2,21 +2,25 @@ from datetime import datetime, timezone
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status
+from drf_spectacular.utils import extend_schema, inline_serializer
+from rest_framework import generics, serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from api.helpers import get_student_submission_data, get_submission_data, get_user_submission
 
+from api.helpers import (get_student_submission_data, get_submission_data,
+                         get_user_submission)
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
 from api.permissions import IsTeacherOrStudentReadOnly
 
 from .serializers import (AnnouncementSerializer, AssignmentDetailSerializer,
-                          AssignmentSerializer, AssignmentWithClassroomSerializer, ClassroomSerializer,
-                          CommentSerializer, NewAnnouncementSerializer,
-                          NewAssignmentSerializer, NewCommentSerializer,
-                          NewSubmissionSerializer, StudentSubmissionSerializer,
-                          SubmissionSerializer, ToReviewSerializer, UserSerializer)
+                          AssignmentSerializer,
+                          AssignmentWithClassroomSerializer,
+                          ClassroomSerializer, CommentSerializer,
+                          NewAnnouncementSerializer, NewAssignmentSerializer,
+                          NewCommentSerializer, NewSubmissionSerializer,
+                          StudentSubmissionSerializer, StudentSubmissionsSerializer, SubmissionSerializer,
+                          ToReviewSerializer, UserSerializer)
 
 
 class ListCreateTeachingClassroom(generics.ListCreateAPIView):
@@ -38,6 +42,13 @@ class ClassroomDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassroomSerializer
 
 
+@extend_schema(
+    request=inline_serializer(
+        name='JoinClassroomSerializer',
+        fields={'code': serializers.CharField()}
+    ),
+    responses=ClassroomSerializer
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def join_class(request):
@@ -74,6 +85,7 @@ class AllClasses(generics.ListAPIView):
         return classes_enrolled.union(classes_teaching)
 
 
+@extend_schema(responses=UserSerializer)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_details(request):
@@ -101,7 +113,7 @@ def announcements(request, code):
         serializer = NewAnnouncementSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(AnnouncementSerializer(serializer.instance).data, status=status.HTTP_200_OK)
+            return Response(AnnouncementSerializer(serializer.instance).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -178,6 +190,7 @@ def announcement_comments_detail(request, code, announcement_id, comment_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(responses=UserSerializer(many=True))
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def students(request, code):
@@ -191,6 +204,7 @@ def students(request, code):
     return Response(serializer.data)
 
 
+@extend_schema(responses=UserSerializer)
 @api_view(['GET', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def students_detail(request, code, student_id):
@@ -212,6 +226,12 @@ def students_detail(request, code, student_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    responses=inline_serializer(
+        name='UserRoleSerializer',
+        fields={'role': serializers.CharField()}
+    )
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_role(request, code):
@@ -396,6 +416,7 @@ def submissions_detail(request, code, assignment_id, submission_id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(responses=StudentSubmissionsSerializer(many=True))
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_student_submissions(request, code, student_id):
@@ -415,6 +436,7 @@ def get_student_submissions(request, code, student_id):
         return Response(submissions)
 
 
+@extend_schema(responses=AssignmentWithClassroomSerializer(many=True))
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def all_assignments(request):
@@ -435,6 +457,7 @@ def all_assignments(request):
         return Response(serializer.data)
 
 
+@extend_schema(responses=ToReviewSerializer(many=True))
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def all_to_review(request):
