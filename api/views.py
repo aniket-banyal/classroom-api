@@ -439,7 +439,7 @@ def get_student_submissions(request, code, student_id):
 @extend_schema(responses=AssignmentWithClassroomSerializer(many=True))
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def all_assignments(request):
+def all_assignments_to_do(request):
     user = request.user
 
     if request.method == 'GET':
