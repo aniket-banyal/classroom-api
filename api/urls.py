@@ -10,7 +10,6 @@ urlpatterns = [
     path('classes_enrolled', views.ClassesEnrolled.as_view(), name='classes_enrolled'),
     path('classes_teaching', views.ListCreateTeachingClassroom.as_view(), name='classes_teaching'),
     path('classes/<str:code>', views.ClassroomDetail.as_view(), name='classes_detail'),
-    path('join_class', views.join_class, name='join_class'),
 
     path('classes/<str:code>/announcements', views.announcements, name='announcements'),
     path('classes/<str:code>/announcements/<int:id>', views.announcement_detail, name='announcement_detail'),

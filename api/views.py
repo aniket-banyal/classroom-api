@@ -49,23 +49,6 @@ class ClassroomDetail(generics.RetrieveUpdateDestroyAPIView):
     ),
     responses=ClassroomSerializer
 )
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def join_class(request):
-    code = request.data['code']
-    classroom = get_object_or_404(Classroom, code=code)
-
-    # check is user is already part of this classroom as a Teacher or Student
-    user = request.user
-    if classroom.is_user_part_of_classroom(user):
-        return Response(status=status.HTTP_409_CONFLICT)
-
-    classroom.students.add(user)
-    serializer = ClassroomSerializer(classroom)
-
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class ClassesEnrolled(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ClassroomSerializer
@@ -191,17 +174,29 @@ def announcement_comments_detail(request, code, announcement_id, comment_id):
 
 
 @extend_schema(responses=UserSerializer(many=True))
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def students(request, code):
     classroom = get_object_or_404(Classroom, code=code)
     user = request.user
 
-    if not classroom.is_user_part_of_classroom(user):
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    if request.method == 'GET':
 
-    serializer = UserSerializer(classroom.get_all_students(), many=True)
-    return Response(serializer.data)
+        if not classroom.is_user_part_of_classroom(user):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        serializer = UserSerializer(classroom.get_all_students(), many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # check is user is already part of this classroom as a Teacher or Student
+        if classroom.is_user_part_of_classroom(user):
+            return Response(status=status.HTTP_409_CONFLICT)
+
+        classroom.students.add(user)
+        serializer = ClassroomSerializer(classroom)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(responses=UserSerializer)
