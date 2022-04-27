@@ -4,11 +4,14 @@ from api.serializers import StudentSubmissionsSerializer, TeacherSubmissionSeria
 
 def get_submission_data(due_date_time, student, submission):
     if submission is not None:
-        return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': submission.status})
+        status = submission.status
 
-    if due_date_time > datetime.now(timezone.utc):
-        return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': 'Assigned'})
-    return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': 'Missing'})
+    elif due_date_time > datetime.now(timezone.utc):
+        status = 'Assigned'
+    else:
+        status = 'Missing'
+
+    return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': status})
 
 
 def get_user_submission(assignment, user):
