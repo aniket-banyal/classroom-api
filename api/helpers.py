@@ -24,11 +24,14 @@ def get_user_submission(assignment, user):
 
 def get_student_submission_data(assignment, student, submission):
     if submission is not None:
-        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': submission.status, 'assignment': assignment})
+        status = submission.status
 
-    if assignment.due_date_time > datetime.now(timezone.utc):
-        return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Assigned', 'assignment': assignment})
-    return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Missing', 'assignment': assignment})
+    elif assignment.due_date_time > datetime.now(timezone.utc):
+        status = 'Assigned'
+    else:
+        status = 'Missing'
+
+    return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'assignment': assignment, 'status': status})
 
 
 def get_submissions(classroom, assignment):
