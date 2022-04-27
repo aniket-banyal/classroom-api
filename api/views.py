@@ -389,6 +389,7 @@ def student_submission(request, code, assignment_id):
 def grade_submission(request, code, assignment_id, submission_id):
     classroom = get_object_or_404(Classroom, code=code)
     assignment = get_object_or_404(Assignment, id=assignment_id)
+    submission = get_object_or_404(Submission, id=submission_id)
 
     if assignment.classroom != classroom:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -398,8 +399,12 @@ def grade_submission(request, code, assignment_id, submission_id):
         if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        submission = get_object_or_404(Submission, id=submission_id)
-        serializer = SubmissionSerializer(submission, data=request.data, partial=True)
+        try:
+            data = {'points': request.data['points']}
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = SubmissionSerializer(submission, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
