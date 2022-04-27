@@ -24,7 +24,7 @@ urlpatterns = [
     path('all_to_review', views.all_to_review, name='all_to_review'),
 
     path('classes/<str:code>/assignments/<int:assignment_id>/submissions', views.submissions, name='submissions'),
-    path('classes/<str:code>/assignments/<int:assignment_id>/submissions/<int:submission_id>', views.submissions_detail, name='submissions_detail'),
+    path('classes/<str:code>/assignments/<int:assignment_id>/submissions/<int:submission_id>', views.grade_submission, name='grade_submission'),
 
     path('classes/<str:code>/student_submissions/<int:student_id>', views.get_student_submissions, name='student_submissions'),
     path('classes/<str:code>/assignments/<int:assignment_id>/student_submission', views.student_submission, name='student_submission'),

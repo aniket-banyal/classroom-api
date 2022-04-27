@@ -386,7 +386,7 @@ def student_submission(request, code, assignment_id):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def submissions_detail(request, code, assignment_id, submission_id):
+def grade_submission(request, code, assignment_id, submission_id):
     classroom = get_object_or_404(Classroom, code=code)
     assignment = get_object_or_404(Assignment, id=assignment_id)
 
