@@ -26,3 +26,13 @@ def get_student_submission_data(assignment, student, submission):
     if assignment.due_date_time > datetime.now(timezone.utc):
         return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Assigned', 'assignment': assignment})
     return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'status': 'Missing', 'assignment': assignment})
+
+
+def get_submissions(classroom, assignment):
+    data = []
+    for student in classroom.students.all():
+        submission = get_user_submission(assignment, student)
+        serializer = get_submission_data(assignment.due_date_time, student, submission)
+        data.append(serializer.data)
+
+    return data

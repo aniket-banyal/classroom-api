@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.helpers import (get_student_submission_data, get_submission_data,
+from api.helpers import (get_student_submission_data, get_submissions,
                          get_user_submission)
 from api.models import Announcement, Assignment, Classroom, Comment, Submission
 from api.permissions import IsTeacherOrStudentReadOnly
@@ -339,12 +339,7 @@ def submissions(request, code, assignment_id):
         if not classroom.is_user_a_teacher(user):
             return Response(status=status.HTTP_403_FORBIDDEN)
 
-        data = []
-        for student in classroom.students.all():
-            submission = get_user_submission(assignment, student)
-            serializer = get_submission_data(assignment.due_date_time, student, submission)
-            data.append(serializer.data)
-
+        data = get_submissions(classroom, assignment)
         return Response(data)
 
     elif request.method == 'POST':
