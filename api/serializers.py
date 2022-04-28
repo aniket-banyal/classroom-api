@@ -1,19 +1,8 @@
 from assignment.models import Assignment
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from user.serializers import UserSerializer
 
 from .models import Classroom
-
-
-class UserSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = get_user_model()
-        fields = ('id', 'name', 'email')
-
-    def get_name(self, user):
-        return user.first_name + ' ' + user.last_name
 
 
 class ClassroomSerializer(serializers.ModelSerializer):

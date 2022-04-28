@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'announcement.apps.AnnouncementConfig',
     'assignment.apps.AssignmentConfig',
     'student.apps.StudentConfig',
+    'user.apps.UserConfig',
     'drf_spectacular',
 ]
 

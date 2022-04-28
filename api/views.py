@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
-from assignment.helpers import get_student_submission_data, get_user_submission
 
+from assignment.helpers import get_student_submission_data, get_user_submission
 from assignment.serializers import StudentSubmissionsSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -13,8 +13,7 @@ from rest_framework.response import Response
 from .models import Classroom
 from .permissions import IsTeacherOrStudentReadOnly
 from .serializers import (AssignmentWithClassroomSerializer,
-                          ClassroomSerializer, ToReviewSerializer,
-                          UserSerializer)
+                          ClassroomSerializer, ToReviewSerializer)
 
 
 class ListCreateTeachingClassroom(generics.ListCreateAPIView):
@@ -60,14 +59,6 @@ class AllClasses(generics.ListAPIView):
         classes_enrolled = user.enrolled_classrooms.all()
         classes_teaching = Classroom.objects.filter(teacher=user)
         return classes_enrolled.union(classes_teaching)
-
-
-@extend_schema(responses=UserSerializer)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_details(request):
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema(
