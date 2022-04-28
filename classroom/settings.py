@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'api.apps.ApiConfig',
     'announcement.apps.AnnouncementConfig',
     'assignment.apps.AssignmentConfig',
+    'student.apps.StudentConfig',
     'drf_spectacular',
 ]
 

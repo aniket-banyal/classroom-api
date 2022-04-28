@@ -15,13 +15,10 @@ urlpatterns = [
 
     path('classes/<str:code>/assignments/', include('assignment.urls')),
 
+    path('classes/<str:code>/students/', include('student.urls')),
+
     path('all_assignments_to_do', views.all_assignments_to_do, name='all_assignments_to_do'),
     path('all_to_review', views.all_to_review, name='all_to_review'),
 
-
     path('classes/<str:code>/student_submissions/<int:student_id>', views.get_student_submissions, name='student_submissions'),
-
-
-    path('classes/<str:code>/students', views.students, name='students'),
-    path('classes/<str:code>/students/<int:student_id>', views.students_detail, name='students_detail'),
 ]
