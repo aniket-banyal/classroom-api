@@ -1,8 +1,6 @@
 from datetime import datetime, timezone
 
-from assignment.models import Assignment
-from assignment.serializers import (StudentSubmissionSerializer,
-                                    StudentSubmissionsSerializer)
+from assignment.serializers import StudentSubmissionsSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, inline_serializer
@@ -139,30 +137,6 @@ def user_role(request, code):
         return Response(data={'role': 'student'}, status=status.HTTP_200_OK)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def student_submission(request, code, assignment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    assignment = get_object_or_404(Assignment, id=assignment_id)
-
-    if assignment.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if request.method == 'GET':
-        if not classroom.is_user_a_student(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
-        submission = get_user_submission(assignment, user)
-        if submission is None:
-            if assignment.due_date_time > datetime.now(timezone.utc):
-                return Response({'status': 'Assigned'})
-            return Response({'status': 'Missing'})
-
-        serializer = StudentSubmissionSerializer(submission)
-        return Response(serializer.data)
 
 
 @extend_schema(responses=StudentSubmissionsSerializer(many=True))

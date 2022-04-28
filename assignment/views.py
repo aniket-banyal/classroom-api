@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from api.helpers import get_submissions
+from api.helpers import get_submissions, get_user_submission
 from api.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from .models import Assignment, Submission
 from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           NewAssignmentSerializer, NewSubmissionSerializer,
-                          SubmissionSerializer)
+                          StudentSubmissionSerializer, SubmissionSerializer)
 
 
 @api_view(['GET', 'POST'])
@@ -157,3 +157,27 @@ def grade_submission(request, code, assignment_id, submission_id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def student_submission(request, code, assignment_id):
+    classroom = get_object_or_404(Classroom, code=code)
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+
+    if assignment.classroom != classroom:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    if request.method == 'GET':
+        if not classroom.is_user_a_student(user):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        submission = get_user_submission(assignment, user)
+        if submission is None:
+            if assignment.due_date_time > datetime.now(timezone.utc):
+                return Response({'status': 'Assigned'})
+            return Response({'status': 'Missing'})
+
+        serializer = StudentSubmissionSerializer(submission)
+        return Response(serializer.data)
