@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from api.serializers import StudentSubmissionsSerializer, TeacherSubmissionSerializer
+from assignment.serializers import StudentSubmissionsSerializer, TeacherSubmissionSerializer
 
 
 def get_user_submission(assignment, user):

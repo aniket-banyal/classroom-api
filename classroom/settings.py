@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api.apps.ApiConfig',
     'announcement.apps.AnnouncementConfig',
+    'assignment.apps.AssignmentConfig',
     'drf_spectacular',
 ]
 
