@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'api.apps.ApiConfig',
+    'announcement.apps.AnnouncementConfig',
     'drf_spectacular',
 ]
 

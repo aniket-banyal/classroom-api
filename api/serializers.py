@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from api.models import Announcement, Assignment, Classroom, Comment, Submission
+from api.models import Assignment, Classroom, Submission
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -24,34 +24,6 @@ class ClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom
         fields = ('teacher', 'name', 'subject', 'code')
-
-
-class AnnouncementSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Announcement
-        fields = ('id', 'text', 'author', 'created_at', 'edited_at')
-
-
-class NewAnnouncementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Announcement
-        fields = ('text', 'classroom', 'author')
-
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ('id', 'text', 'author', 'created_at')
-
-
-class NewCommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = ('announcement', 'text', 'author')
 
 
 class AssignmentSerializer(serializers.ModelSerializer):

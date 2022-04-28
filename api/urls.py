@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import views
 
@@ -11,11 +11,7 @@ urlpatterns = [
     path('classes_teaching', views.ListCreateTeachingClassroom.as_view(), name='classes_teaching'),
     path('classes/<str:code>', views.ClassroomDetail.as_view(), name='classes_detail'),
 
-    path('classes/<str:code>/announcements', views.announcements, name='announcements'),
-    path('classes/<str:code>/announcements/<int:id>', views.announcement_detail, name='announcement_detail'),
-
-    path('classes/<str:code>/announcements/<int:id>/comments', views.announcement_comments, name='announcement_comments'),
-    path('classes/<str:code>/announcements/<int:announcement_id>/comments/<int:comment_id>', views.announcement_comments_detail, name='announcement_comments_detail'),
+    path('classes/<str:code>/announcements/', include('announcement.urls')),
 
     path('classes/<str:code>/assignments', views.assignments, name='assignments'),
     path('classes/<str:code>/assignments/<int:assignment_id>', views.assignment_detail, name='assignment_detail'),
