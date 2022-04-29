@@ -65,7 +65,7 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
-ROOT_URLCONF = 'classroom.urls'
+ROOT_URLCONF = 'classroom_project.urls'
 
 TEMPLATES = [
     {
@@ -85,7 +85,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'classroom.wsgi.application'
+WSGI_APPLICATION = 'classroom_project.wsgi.application'
 
 
 # Database
