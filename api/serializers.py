@@ -1,25 +1,5 @@
-from assignment.models import Assignment
+from assignment.serializers import AssignmentWithClassroomSerializer
 from rest_framework import serializers
-from user.serializers import UserSerializer
-
-from .models import Classroom
-
-
-class ClassroomSerializer(serializers.ModelSerializer):
-    code = serializers.CharField(read_only=True)
-    teacher = UserSerializer(read_only=True)
-
-    class Meta:
-        model = Classroom
-        fields = ('teacher', 'name', 'subject', 'code')
-
-
-class AssignmentWithClassroomSerializer(serializers.ModelSerializer):
-    classroom = ClassroomSerializer()
-
-    class Meta:
-        model = Assignment
-        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time', 'points', 'classroom')
 
 
 class ToReviewSerializer(serializers.Serializer):

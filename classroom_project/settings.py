@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'assignment.apps.AssignmentConfig',
     'student.apps.StudentConfig',
     'user.apps.UserConfig',
+    'classroom.apps.ClassroomConfig',
     'drf_spectacular',
 ]
 

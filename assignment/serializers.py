@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from classroom.serializers import ClassroomSerializer
 from rest_framework import serializers
 from user.serializers import UserSerializer
 
@@ -32,6 +33,14 @@ class NewAssignmentSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError('Points must be greater than or equal to Zero')
         return value
+
+
+class AssignmentWithClassroomSerializer(serializers.ModelSerializer):
+    classroom = ClassroomSerializer()
+
+    class Meta:
+        model = Assignment
+        fields = ('id', 'title', 'created_at', 'edited_at', 'due_date_time', 'points', 'classroom')
 
 
 class SubmissionSerializer(serializers.ModelSerializer):

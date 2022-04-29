@@ -1,4 +1,4 @@
-from api.models import Classroom
+from classroom.models import Classroom
 from django.contrib.auth import get_user_model
 from django.db import models
 

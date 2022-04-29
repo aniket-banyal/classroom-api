@@ -1,5 +1,5 @@
-from api.models import Classroom
-from api.serializers import ClassroomSerializer, UserSerializer
+from classroom.models import Classroom
+from classroom.serializers import ClassroomSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from user.serializers import UserSerializer
 
 
 @extend_schema(responses=UserSerializer(many=True))
