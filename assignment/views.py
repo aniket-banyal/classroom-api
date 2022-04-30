@@ -4,8 +4,11 @@ from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from assignment.permissions import IsTeacherOrStudentReadOnly
 
 from .helpers import get_submissions, get_user_submission
 from .models import Assignment, Submission
@@ -14,15 +17,11 @@ from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           StudentSubmissionSerializer, SubmissionSerializer)
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def assignments(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
+class Assignments(GenericAPIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnly]
 
-    if request.method == 'GET':
-        if not classroom.is_user_part_of_classroom(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def get(self, request, code):
+        classroom = get_object_or_404(Classroom, code=code)
 
         upcoming = request.query_params.get('upcoming')
         if upcoming:
@@ -35,9 +34,8 @@ def assignments(request, code):
         serializer = AssignmentSerializer(classroom.get_assignments(), many=True)
         return Response(serializer.data)
 
-    elif request.method == 'POST':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def post(self, request, code):
+        classroom = get_object_or_404(Classroom, code=code)
 
         request.data.update({"classroom": classroom.id})
 
