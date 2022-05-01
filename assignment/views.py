@@ -4,7 +4,7 @@ from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.generics import GenericAPIView
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -17,7 +17,7 @@ from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           StudentSubmissionSerializer, SubmissionSerializer)
 
 
-class Assignments(GenericAPIView):
+class Assignments(APIView):
     permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnly]
 
     def get(self, request, code):
@@ -26,10 +26,8 @@ class Assignments(GenericAPIView):
         upcoming = request.query_params.get('upcoming')
         if upcoming:
             upcoming_assignment = classroom.get_upcoming_assignments()
-            if upcoming_assignment is not None:
-                serializer = AssignmentSerializer(upcoming_assignment)
-                return Response(serializer.data)
-            return Response({'data': None})
+            serializer = AssignmentSerializer(upcoming_assignment, many=True)
+            return Response(serializer.data)
 
         serializer = AssignmentSerializer(classroom.get_assignments(), many=True)
         return Response(serializer.data)

@@ -30,7 +30,7 @@ class Classroom(models.Model):
 
         if len(upcoming_assignments) > 0:
             upcoming_assignments.sort(key=lambda assignment: assignment.due_date_time)
-            return upcoming_assignments[0]
+            return upcoming_assignments
 
         return None
 
