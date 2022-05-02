@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from assignment.permissions import IsTeacherOrStudentReadOnly
+from assignment.permissions import IsTeacherOrStudentReadOnly, IsTeacherOrStudentReadOnlyAssignmentDetail
 
 from .helpers import get_submissions, get_user_submission
 from .models import Assignment, Submission
@@ -52,26 +52,17 @@ class Assignments(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'DELETE', 'PUT'])
-@permission_classes([IsAuthenticated])
-def assignment_detail(request, code, assignment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    assignment = get_object_or_404(Assignment, id=assignment_id)
+class AssignmentDetail(APIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnlyAssignmentDetail]
 
-    if assignment.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if request.method == 'GET':
-        if not classroom.is_user_part_of_classroom(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
+    def get(self, request, code, assignment_id):
+        assignment = get_object_or_404(Assignment, id=assignment_id)
         serializer = AssignmentDetailSerializer(assignment)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def put(self, request, code, assignment_id):
+        classroom = get_object_or_404(Classroom, code=code)
+        assignment = get_object_or_404(Assignment, id=assignment_id)
 
         request.data.update({"classroom": classroom.id})
 
@@ -85,10 +76,8 @@ def assignment_detail(request, code, assignment_id):
             return Response(AssignmentSerializer(assignment).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
+    def delete(self, request, code, assignment_id):
+        assignment = get_object_or_404(Assignment, id=assignment_id)
         assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
