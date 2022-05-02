@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,22 +20,22 @@ from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           StudentSubmissionSerializer, SubmissionSerializer)
 
 
-class Assignments(APIView):
+class Assignments(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnly]
+    serializer_class = AssignmentSerializer
 
-    def get(self, request, code):
+    def get_queryset(self):
+        code = self.kwargs['code']
         classroom = get_object_or_404(Classroom, code=code)
 
-        upcoming = request.query_params.get('upcoming')
+        upcoming = self.request.query_params.get('upcoming')
         if upcoming:
-            upcoming_assignment = classroom.get_upcoming_assignments()
-            serializer = AssignmentSerializer(upcoming_assignment, many=True)
-            return Response(serializer.data)
+            return classroom.get_upcoming_assignments()
 
-        serializer = AssignmentSerializer(classroom.get_assignments(), many=True)
-        return Response(serializer.data)
+        return classroom.get_assignments()
 
-    def post(self, request, code):
+    def create(self, request, **kwargs):
+        code = kwargs['code']
         classroom = get_object_or_404(Classroom, code=code)
 
         request.data.update({"classroom": classroom.id})
