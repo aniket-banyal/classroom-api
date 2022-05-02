@@ -3,12 +3,12 @@ from datetime import datetime, timezone
 from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from assignment.permissions import (IsTeacherOrStudentPostOnlySubmissions,
+from assignment.permissions import (IsStudentReadOnly,
+                                    IsTeacherOrStudentPostOnlySubmissions,
                                     IsTeacherOrStudentReadOnly,
                                     IsTeacherOrStudentReadOnlyAssignmentDetail)
 
@@ -130,19 +130,12 @@ class GradeSubmission(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def student_submission(request, code, assignment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    assignment = get_object_or_404(Assignment, id=assignment_id)
+class StudentSubmission(APIView):
+    permission_classes = [IsAuthenticated, IsStudentReadOnly]
 
-    if assignment.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if request.method == 'GET':
-        if not classroom.is_user_a_student(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def get(self, request, code, assignment_id):
+        user = request.user
+        assignment = get_object_or_404(Assignment, id=assignment_id)
 
         submission = get_user_submission(assignment, user)
         if submission is None:
