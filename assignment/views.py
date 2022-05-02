@@ -4,11 +4,13 @@ from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from assignment.permissions import IsTeacherOrStudentReadOnly, IsTeacherOrStudentReadOnlyAssignmentDetail
+from assignment.permissions import (IsTeacherOrStudentPostOnlySubmissions,
+                                    IsTeacherOrStudentReadOnly,
+                                    IsTeacherOrStudentReadOnlyAssignmentDetail)
 
 from .helpers import get_submissions, get_user_submission
 from .models import Assignment, Submission
@@ -82,26 +84,19 @@ class AssignmentDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def submissions(request, code, assignment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    assignment = get_object_or_404(Assignment, id=assignment_id)
+class Submissions(APIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudentPostOnlySubmissions]
 
-    if assignment.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if request.method == 'GET':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def get(self, request, code, assignment_id):
+        classroom = get_object_or_404(Classroom, code=code)
+        assignment = get_object_or_404(Assignment, id=assignment_id)
 
         data = get_submissions(classroom, assignment)
         return Response(data)
 
-    elif request.method == 'POST':
-        if not classroom.is_user_a_student(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def post(self, request, code, assignment_id):
+        user = request.user
+        assignment = get_object_or_404(Assignment, id=assignment_id)
 
         # check if user has already submitted submission
         if assignment.get_student_submission(user) is not None:

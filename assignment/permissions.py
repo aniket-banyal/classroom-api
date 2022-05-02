@@ -33,3 +33,21 @@ class IsTeacherOrStudentReadOnlyAssignmentDetail(BasePermission):
 
         if request.method == 'DELETE' or request.method == 'PUT':
             return classroom.is_user_a_teacher(user)
+
+
+class IsTeacherOrStudentPostOnlySubmissions(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        code = view.kwargs['code']
+        assignment_id = view.kwargs['assignment_id']
+        classroom = get_object_or_404(Classroom, code=code)
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+
+        if assignment.classroom != classroom:
+            return False
+
+        if request.method == 'GET':
+            return classroom.is_user_a_teacher(user)
+
+        if request.method == 'POST':
+            return classroom.is_user_a_student(user)
