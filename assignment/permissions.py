@@ -17,16 +17,21 @@ class IsTeacherOrStudentReadOnly(BasePermission):
             return classroom.is_user_a_teacher(user)
 
 
-class IsTeacherOrStudentReadOnlyAssignmentDetail(BasePermission):
+class IsAssignmentPartOfClassroom(BasePermission):
     def has_permission(self, request, view):
-        user = request.user
         code = view.kwargs['code']
         assignment_id = view.kwargs['assignment_id']
         classroom = get_object_or_404(Classroom, code=code)
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
-        if assignment.classroom != classroom:
-            return False
+        return assignment.classroom == classroom
+
+
+class IsTeacherOrStudentReadOnlyAssignmentDetail(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        code = view.kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
 
         if request.method == 'GET':
             return classroom.is_user_part_of_classroom(user)
@@ -39,12 +44,7 @@ class IsTeacherOrStudentPostOnlySubmissions(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         code = view.kwargs['code']
-        assignment_id = view.kwargs['assignment_id']
         classroom = get_object_or_404(Classroom, code=code)
-        assignment = get_object_or_404(Assignment, id=assignment_id)
-
-        if assignment.classroom != classroom:
-            return False
 
         if request.method == 'GET' or request.method == 'PATCH':
             return classroom.is_user_a_teacher(user)
@@ -57,12 +57,7 @@ class IsStudentReadOnly(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         code = view.kwargs['code']
-        assignment_id = view.kwargs['assignment_id']
         classroom = get_object_or_404(Classroom, code=code)
-        assignment = get_object_or_404(Assignment, id=assignment_id)
-
-        if assignment.classroom != classroom:
-            return False
 
         if request.method == 'GET':
             return classroom.is_user_a_student(user)

@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from assignment.permissions import (IsStudentReadOnly,
+from assignment.permissions import (IsAssignmentPartOfClassroom,
+                                    IsStudentReadOnly,
                                     IsTeacherOrStudentPostOnlySubmissions,
                                     IsTeacherOrStudentReadOnly,
                                     IsTeacherOrStudentReadOnlyAssignmentDetail)
@@ -55,7 +56,7 @@ class Assignments(APIView):
 
 
 class AssignmentDetail(APIView):
-    permission_classes = [IsAuthenticated, IsTeacherOrStudentReadOnlyAssignmentDetail]
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentReadOnlyAssignmentDetail]
 
     def get(self, request, code, assignment_id):
         assignment = get_object_or_404(Assignment, id=assignment_id)
@@ -85,7 +86,7 @@ class AssignmentDetail(APIView):
 
 
 class Submissions(APIView):
-    permission_classes = [IsAuthenticated, IsTeacherOrStudentPostOnlySubmissions]
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
 
     def get(self, request, code, assignment_id):
         classroom = get_object_or_404(Classroom, code=code)
@@ -113,7 +114,7 @@ class Submissions(APIView):
 
 
 class GradeSubmission(APIView):
-    permission_classes = [IsAuthenticated, IsTeacherOrStudentPostOnlySubmissions]
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
 
     def patch(self, request, code, assignment_id, submission_id):
         submission = get_object_or_404(Submission, id=submission_id)
@@ -131,7 +132,7 @@ class GradeSubmission(APIView):
 
 
 class StudentSubmission(APIView):
-    permission_classes = [IsAuthenticated, IsStudentReadOnly]
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsStudentReadOnly]
 
     def get(self, request, code, assignment_id):
         user = request.user
