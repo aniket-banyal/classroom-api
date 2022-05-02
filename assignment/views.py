@@ -55,15 +55,17 @@ class Assignments(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AssignmentDetail(APIView):
+class AssignmentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentReadOnlyAssignmentDetail]
+    serializer_class = AssignmentDetailSerializer
 
-    def get(self, request, code, assignment_id):
-        assignment = get_object_or_404(Assignment, id=assignment_id)
-        serializer = AssignmentDetailSerializer(assignment)
-        return Response(serializer.data)
+    def get_object(self):
+        assignment_id = self.kwargs['assignment_id']
+        return get_object_or_404(Assignment, id=assignment_id)
 
-    def put(self, request, code, assignment_id):
+    def update(self, request, **kwargs):
+        code = kwargs['code']
+        assignment_id = kwargs['assignment_id']
         classroom = get_object_or_404(Classroom, code=code)
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
@@ -79,7 +81,8 @@ class AssignmentDetail(APIView):
             return Response(AssignmentSerializer(assignment).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, code, assignment_id):
+    def destroy(self, request, **kwargs):
+        assignment_id = kwargs['assignment_id']
         assignment = get_object_or_404(Assignment, id=assignment_id)
         assignment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
