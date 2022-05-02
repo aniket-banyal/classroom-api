@@ -112,20 +112,11 @@ class Submissions(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
-def grade_submission(request, code, assignment_id, submission_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    assignment = get_object_or_404(Assignment, id=assignment_id)
-    submission = get_object_or_404(Submission, id=submission_id)
+class GradeSubmission(APIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudentPostOnlySubmissions]
 
-    if assignment.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if request.method == 'PATCH':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def patch(self, request, code, assignment_id, submission_id):
+        submission = get_object_or_404(Submission, id=submission_id)
 
         try:
             data = {'points': request.data['points']}

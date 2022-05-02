@@ -46,7 +46,7 @@ class IsTeacherOrStudentPostOnlySubmissions(BasePermission):
         if assignment.classroom != classroom:
             return False
 
-        if request.method == 'GET':
+        if request.method == 'GET' or request.method == 'PATCH':
             return classroom.is_user_a_teacher(user)
 
         if request.method == 'POST':
