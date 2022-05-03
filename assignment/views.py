@@ -121,7 +121,8 @@ class Submissions(generics.ListCreateAPIView):
 class GradeSubmission(APIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
 
-    def patch(self, request, code, assignment_id, submission_id):
+    def patch(self, request, **kwargs):
+        submission_id = kwargs['submission_id']
         submission = get_object_or_404(Submission, id=submission_id)
 
         try:
@@ -139,9 +140,10 @@ class GradeSubmission(APIView):
 class StudentSubmission(APIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsStudentReadOnly]
 
-    def get(self, request, code, assignment_id):
-        user = request.user
+    def get(self, request, **kwargs):
+        assignment_id = kwargs['assignment_id']
         assignment = get_object_or_404(Assignment, id=assignment_id)
+        user = request.user
 
         submission = get_user_submission(assignment, user)
         if submission is None:
