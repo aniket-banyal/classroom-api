@@ -6,6 +6,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from announcement.permissions import IsTeacherOrAnnouncementAuthor
+
 from .models import Announcement, Comment
 from .serializers import (AnnouncementSerializer, CommentSerializer,
                           NewAnnouncementSerializer, NewCommentSerializer)
@@ -33,26 +35,19 @@ class Announcements(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def announcement_detail(request, code, id):
-    classroom = get_object_or_404(Classroom, code=code)
-    announcement = get_object_or_404(Announcement, id=id)
-    if announcement.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+class AnnouncementDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrAnnouncementAuthor]
+    serializer_class = NewAnnouncementSerializer
 
-    user = request.user
-    if not (classroom.is_user_a_teacher(user) or user == announcement.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    def get_object(self):
+        announcement_id = self.kwargs['announcement_id']
+        return get_object_or_404(Announcement, id=announcement_id)
 
-    if request.method == 'PUT':
-        serializer = NewAnnouncementSerializer(announcement, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(AnnouncementSerializer(announcement).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs, partial=True)
 
-    elif request.method == 'DELETE':
+    def destroy(self, request, **kwargs):
+        announcement = self.get_object()
         announcement.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
