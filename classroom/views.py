@@ -10,7 +10,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from classroom.permissions import IsTeacherOrStudent
+from classroom.permissions import (IsStudentInStudentSubmissions, IsTeacher,
+                                   IsTeacherOrStudent)
 
 from .models import Classroom
 from .serializers import ClassroomSerializer, UserRoleSerializer
@@ -42,21 +43,20 @@ class UserRole(APIView):
             return Response(serializer.data)
 
 
-@extend_schema(responses=StudentSubmissionsSerializer(many=True))
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_student_submissions(request, code, student_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
-    if not classroom.is_user_a_teacher(user):
-        return Response(status=status.HTTP_403_FORBIDDEN)
+class StudentSubmissions(generics.ListAPIView):
+    permission_classes = [IsAuthenticated, IsTeacher, IsStudentInStudentSubmissions]
+    serializer_class = StudentSubmissionsSerializer
 
-    if request.method == 'GET':
+    def get_queryset(self):
+        code = self.kwargs['code']
+        student_id = self.kwargs['student_id']
+        classroom = get_object_or_404(Classroom, code=code)
+
         submissions = []
         student = get_object_or_404(get_user_model(), id=student_id)
         for assignment in classroom.assignment_set.all().order_by('-created_at'):
             submission = get_user_submission(assignment, student)
-            serializer = get_student_submission_data(assignment, student, submission)
-            submissions.append(serializer.data)
+            data = get_student_submission_data(assignment, student, submission)
+            submissions.append(data)
 
-        return Response(submissions)
+        return submissions

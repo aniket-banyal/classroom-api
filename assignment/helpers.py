@@ -44,4 +44,4 @@ def get_student_submission_data(assignment, student, submission):
     else:
         status = 'Missing'
 
-    return StudentSubmissionsSerializer({'student': student, 'submission': submission, 'assignment': assignment, 'status': status})
+    return {'student': student, 'submission': submission, 'assignment': assignment, 'status': status}

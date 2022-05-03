@@ -13,5 +13,5 @@ urlpatterns = [
 
     path('students/', include('student.urls')),
 
-    path('student_submissions/<int:student_id>', views.get_student_submissions, name='student_submissions'),
+    path('student_submissions/<int:student_id>', views.StudentSubmissions.as_view(), name='student_submissions'),
 ]
