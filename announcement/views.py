@@ -1,6 +1,7 @@
 from classroom.models import Classroom
+from classroom.permissions import IsTeacherOrStudent
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,22 +11,20 @@ from .serializers import (AnnouncementSerializer, CommentSerializer,
                           NewAnnouncementSerializer, NewCommentSerializer)
 
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def announcements(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
+class Announcements(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudent]
+    serializer_class = AnnouncementSerializer
 
-    if not classroom.is_user_part_of_classroom(user):
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    def get_queryset(self):
+        code = self.kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+        return classroom.get_announcements()
 
-    if request.method == 'GET':
-        serializer = AnnouncementSerializer(classroom.get_announcements(), many=True)
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
+    def create(self, request, **kwargs):
+        code = self.kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
         request.data.update({"classroom": classroom.id})
-        request.data.update({"author": user.id})
+        request.data.update({"author": request.user.id})
 
         serializer = NewAnnouncementSerializer(data=request.data)
         if serializer.is_valid():
