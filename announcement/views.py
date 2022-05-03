@@ -2,12 +2,13 @@ from classroom.models import Classroom
 from classroom.permissions import IsTeacherOrStudent
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from announcement.permissions import (IsAnnouncementPartOfClassroom,
-                                      IsTeacherOrAnnouncementAuthor)
+                                      IsCommentPartOfAnnouncement,
+                                      IsTeacherOrAnnouncementAuthor,
+                                      IsTeacherOrCommentAuthor)
 
 from .models import Announcement, Comment
 from .serializers import (AnnouncementSerializer, CommentSerializer,
@@ -76,23 +77,14 @@ class AnnouncementComments(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def announcement_comments_detail(request, code, announcement_id, comment_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    comment = get_object_or_404(Comment, id=comment_id)
-    announcement = get_object_or_404(Announcement, id=announcement_id)
+class AnnouncementCommentDelete(generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated, IsAnnouncementPartOfClassroom, IsCommentPartOfAnnouncement, IsTeacherOrCommentAuthor]
 
-    if announcement.classroom != classroom:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    def get_object(self):
+        comment_id = self.kwargs['comment_id']
+        return get_object_or_404(Comment, id=comment_id)
 
-    if comment.announcement != announcement:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    user = request.user
-    if not (classroom.is_user_a_teacher(user) or user == comment.author):
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    if request.method == 'DELETE':
+    def destroy(self, request, **kwargs):
+        comment = self.get_object()
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

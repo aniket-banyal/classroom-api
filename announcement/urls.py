@@ -7,5 +7,5 @@ urlpatterns = [
     path('<int:announcement_id>', views.AnnouncementDetail.as_view(), name='announcement_detail'),
 
     path('<int:announcement_id>/comments', views.AnnouncementComments.as_view(), name='announcement_comments'),
-    path('<int:announcement_id>/comments/<int:comment_id>', views.announcement_comments_detail, name='announcement_comments_detail'),
+    path('<int:announcement_id>/comments/<int:comment_id>', views.AnnouncementCommentDelete.as_view(), name='announcement_comment_delete'),
 ]
