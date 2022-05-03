@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.ClassroomDetail.as_view(), name='classes_detail'),
 
-    path('user_role', views.user_role, name='user_role'),
+    path('user_role', views.UserRole.as_view(), name='user_role'),
 
     path('announcements/', include('announcement.urls')),
 

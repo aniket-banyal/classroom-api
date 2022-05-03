@@ -8,9 +8,12 @@ from rest_framework import generics, serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from classroom.permissions import IsTeacherOrStudent
 
 from .models import Classroom
-from .serializers import ClassroomSerializer
+from .serializers import ClassroomSerializer, UserRoleSerializer
 
 
 class ClassroomDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -21,25 +24,22 @@ class ClassroomDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClassroomSerializer
 
 
-@extend_schema(
-    responses=inline_serializer(
-        name='UserRoleSerializer',
-        fields={'role': serializers.CharField()}
-    )
-)
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_role(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
+class UserRole(APIView):
+    permission_classes = [IsAuthenticated, IsTeacherOrStudent]
 
-    if classroom.is_user_a_teacher(user):
-        return Response(data={'role': 'teacher'}, status=status.HTTP_200_OK)
+    def get(self, request, **kwargs):
+        code = kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+        user = request.user
 
-    if classroom.is_user_a_student(user):
-        return Response(data={'role': 'student'}, status=status.HTTP_200_OK)
+        if classroom.is_user_a_teacher(user):
+            role = 'teacher'
+        elif classroom.is_user_a_student(user):
+            role = 'student'
 
-    return Response(status=status.HTTP_403_FORBIDDEN)
+        serializer = UserRoleSerializer(data={'role': role})
+        if serializer.is_valid():
+            return Response(serializer.data)
 
 
 @extend_schema(responses=StudentSubmissionsSerializer(many=True))

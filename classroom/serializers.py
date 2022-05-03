@@ -11,3 +11,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Classroom
         fields = ('teacher', 'name', 'subject', 'code')
+
+
+class UserRoleSerializer(serializers.Serializer):
+    role = serializers.CharField()
