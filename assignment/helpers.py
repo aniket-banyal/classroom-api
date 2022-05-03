@@ -22,17 +22,17 @@ def get_submission_data(due_date_time, student, submission):
     else:
         status = 'Missing'
 
-    return TeacherSubmissionSerializer({'student': student, 'submission': submission, 'status': status})
+    return {'student': student, 'submission': submission, 'status': status}
 
 
-def get_submissions(classroom, assignment):
-    data = []
-    for student in classroom.students.all():
+def get_submissions(assignment):
+    submissions = []
+    for student in assignment.classroom.students.all():
         submission = get_user_submission(assignment, student)
-        serializer = get_submission_data(assignment.due_date_time, student, submission)
-        data.append(serializer.data)
+        data = get_submission_data(assignment.due_date_time, student, submission)
+        submissions.append(data)
 
-    return data
+    return submissions
 
 
 def get_student_submission_data(assignment, student, submission):

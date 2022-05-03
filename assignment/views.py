@@ -17,7 +17,8 @@ from .helpers import get_submissions, get_user_submission
 from .models import Assignment, Submission
 from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           NewAssignmentSerializer, NewSubmissionSerializer,
-                          StudentSubmissionSerializer, SubmissionSerializer)
+                          StudentSubmissionSerializer, SubmissionSerializer,
+                          TeacherSubmissionSerializer)
 
 
 class Assignments(generics.ListCreateAPIView):
@@ -88,20 +89,21 @@ class AssignmentDetail(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class Submissions(APIView):
+class Submissions(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
+    serializer_class = TeacherSubmissionSerializer
 
-    def get(self, request, code, assignment_id):
-        classroom = get_object_or_404(Classroom, code=code)
+    def get_queryset(self):
+        assignment_id = self.kwargs['assignment_id']
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
-        data = get_submissions(classroom, assignment)
-        return Response(data)
+        return get_submissions(assignment)
 
-    def post(self, request, code, assignment_id):
+    def create(self, request, **kwargs):
+        assignment_id = kwargs['assignment_id']
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+
         user = request.user
-        assignment = get_object_or_404(Assignment, id=assignment_id)
-
         # check if user has already submitted submission
         if assignment.get_student_submission(user) is not None:
             return Response(status=status.HTTP_409_CONFLICT)
