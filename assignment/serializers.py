@@ -20,6 +20,9 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
 
 
 class NewAssignmentSerializer(serializers.ModelSerializer):
+    due_date_time = serializers.DateTimeField(read_only=True)
+    classroom = ClassroomSerializer(read_only=True)
+
     class Meta:
         model = Assignment
         fields = ('title', 'text', 'classroom', 'due_date_time', 'points')
