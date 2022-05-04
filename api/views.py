@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from assignment.helpers import get_user_submission
 from assignment.serializers import AssignmentWithClassroomSerializer
 from classroom.models import Classroom
@@ -50,13 +48,12 @@ class AllClasses(generics.ListAPIView):
         return classes_enrolled.union(classes_teaching)
 
 
-@extend_schema(responses=AssignmentWithClassroomSerializer(many=True))
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def all_assignments_to_do(request):
-    user = request.user
+class AllAssignmentsToDo(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = AssignmentWithClassroomSerializer
 
-    if request.method == 'GET':
+    def get_queryset(self):
+        user = self.request.user
         all_assignments = []
         for classroom in user.enrolled_classrooms.all():
             assignments = classroom.get_assignments()
@@ -64,11 +61,9 @@ def all_assignments_to_do(request):
             for assignment in assignments:
                 submission = get_user_submission(assignment, user)
                 if submission is None:
-                    if assignment.due_date_time > datetime.now(timezone.utc):
-                        all_assignments.append(assignment)
+                    all_assignments.append(assignment)
 
-        serializer = AssignmentWithClassroomSerializer(all_assignments, many=True)
-        return Response(serializer.data)
+        return all_assignments
 
 
 @extend_schema(responses=ToReviewSerializer(many=True))
