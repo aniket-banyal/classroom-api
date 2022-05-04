@@ -7,7 +7,7 @@ from django.utils.crypto import get_random_string
 
 class Classroom(models.Model):
     CODE_LEN = 16
-    teacher = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    teacher = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,  related_name='teaching_classrooms')
     name = models.CharField(max_length=250)
     subject = models.CharField(max_length=50)
     code = models.CharField(max_length=CODE_LEN, unique=True)

@@ -66,15 +66,14 @@ class AllAssignmentsToDo(generics.ListAPIView):
         return all_assignments
 
 
-@extend_schema(responses=ToReviewSerializer(many=True))
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def all_to_review(request):
-    user = request.user
+class AllToReview(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ToReviewSerializer
 
-    if request.method == 'GET':
+    def get_queryset(self):
+        user = self.request.user
         data = []
-        for classroom in user.classroom_set.all():
+        for classroom in user.teaching_classrooms.all():
             assignments = classroom.get_assignments()
             for assignment in assignments:
                 num_turned_in = len(assignment.get_submissions_to_review())
@@ -83,5 +82,4 @@ def all_to_review(request):
                 if num_graded < total_submissions:
                     data.append({'assignment': assignment, 'turned_in': num_turned_in, 'graded': num_graded})
 
-        serializer = ToReviewSerializer(data, many=True)
-        return Response(serializer.data)
+        return data

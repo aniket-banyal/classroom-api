@@ -12,5 +12,5 @@ urlpatterns = [
     path('classes/<str:code>/', include('classroom.urls')),
 
     path('all_assignments_to_do', views.AllAssignmentsToDo.as_view(), name='all_assignments_to_do'),
-    path('all_to_review', views.all_to_review, name='all_to_review'),
+    path('all_to_review', views.AllToReview.as_view(), name='all_to_review'),
 ]
