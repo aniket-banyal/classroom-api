@@ -85,7 +85,13 @@ class AssignmentDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class Submissions(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
-    serializer_class = TeacherSubmissionSerializer
+
+    def get_serializer_class(self):
+        request = self.request
+        if request.method == 'GET':
+            return TeacherSubmissionSerializer
+        elif request.method == 'POST':
+            return NewSubmissionSerializer
 
     def get_queryset(self):
         assignment_id = self.kwargs['assignment_id']
@@ -93,23 +99,17 @@ class Submissions(generics.ListCreateAPIView):
 
         return get_submissions(assignment)
 
-    def create(self, request, **kwargs):
-        assignment_id = kwargs['assignment_id']
+    def perform_create(self, serializer):
+        assignment_id = self.kwargs['assignment_id']
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
+        request = self.request
         user = request.user
         # check if user has already submitted submission
         if assignment.get_student_submission(user) is not None:
             return Response(status=status.HTTP_409_CONFLICT)
 
-        request.data.update({"assignment": assignment.id})
-        request.data.update({"student": user.id})
-
-        serializer = NewSubmissionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(assignment=assignment, student=user)
 
 
 class GradeSubmission(APIView):

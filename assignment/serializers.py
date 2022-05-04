@@ -60,6 +60,9 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
 
 class NewSubmissionSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+    assignment = AssignmentSerializer(read_only=True)
+
     class Meta:
         model = Submission
         fields = ('url', 'assignment', 'student')
