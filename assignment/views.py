@@ -50,7 +50,6 @@ class Assignments(generics.ListCreateAPIView):
             due_date_timestamp = int(request.data['due_date_time'])
         except TypeError:
             return Response({'due_date_time': ['Due date time is of invalid type']}, status=status.HTTP_400_BAD_REQUEST)
-
         due_date_time = datetime.fromtimestamp(due_date_timestamp / 1000.0, timezone.utc)
 
         serializer.save(due_date_time=due_date_time, classroom=classroom)
@@ -58,35 +57,30 @@ class Assignments(generics.ListCreateAPIView):
 
 class AssignmentDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentReadOnlyAssignmentDetail]
-    serializer_class = AssignmentDetailSerializer
+
+    def get_serializer_class(self):
+        request = self.request
+        if request.method == 'GET':
+            return AssignmentDetailSerializer
+        elif request.method == 'PUT':
+            return NewAssignmentSerializer
 
     def get_object(self):
         assignment_id = self.kwargs['assignment_id']
         return get_object_or_404(Assignment, id=assignment_id)
 
-    def update(self, request, **kwargs):
-        code = kwargs['code']
-        assignment_id = kwargs['assignment_id']
+    def perform_update(self, serializer):
+        code = self.kwargs['code']
         classroom = get_object_or_404(Classroom, code=code)
-        assignment = get_object_or_404(Assignment, id=assignment_id)
+        request = self.request
 
-        request.data.update({"classroom": classroom.id})
-
-        due_date_timestamp = int(request.data['due_date_time'])
+        try:
+            due_date_timestamp = int(request.data['due_date_time'])
+        except TypeError:
+            return Response({'due_date_time': ['Due date time is of invalid type']}, status=status.HTTP_400_BAD_REQUEST)
         due_date_time = datetime.fromtimestamp(due_date_timestamp / 1000.0, timezone.utc)
-        request.data.update({"due_date_time": due_date_time})
 
-        serializer = NewAssignmentSerializer(assignment, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(AssignmentSerializer(assignment).data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, **kwargs):
-        assignment_id = kwargs['assignment_id']
-        assignment = get_object_or_404(Assignment, id=assignment_id)
-        assignment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer.save(due_date_time=due_date_time, classroom=classroom)
 
 
 class Submissions(generics.ListCreateAPIView):
