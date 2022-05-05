@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
 
 from classroom.models import Classroom
+from classroom.permissions import IsTeacher
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 from rest_framework.views import APIView
 
 from assignment.permissions import (IsAssignmentPartOfClassroom,
@@ -112,23 +114,20 @@ class Submissions(generics.ListCreateAPIView):
         serializer.save(assignment=assignment, student=user)
 
 
-class GradeSubmission(APIView):
-    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacherOrStudentPostOnlySubmissions]
+class GradeSubmission(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacher]
+    serializer_class = SubmissionSerializer
 
-    def patch(self, request, **kwargs):
-        submission_id = kwargs['submission_id']
-        submission = get_object_or_404(Submission, id=submission_id)
+    def get_object(self):
+        submission_id = self.kwargs['submission_id']
+        return get_object_or_404(Submission, id=submission_id)
 
+    def perform_update(self, serializer):
         try:
-            data = {'points': request.data['points']}
+            points = self.request.data['points']
         except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = SubmissionSerializer(submission, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError()
+        serializer.save(points=points)
 
 
 class StudentSubmission(APIView):
