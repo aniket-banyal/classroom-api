@@ -1,9 +1,8 @@
 from classroom.models import Classroom
 from classroom.permissions import IsTeacherOrStudent
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, status
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 from announcement.permissions import (IsAnnouncementPartOfClassroom,
                                       IsCommentPartOfAnnouncement,
@@ -49,11 +48,6 @@ class AnnouncementDetail(generics.RetrieveUpdateDestroyAPIView):
         classroom = get_object_or_404(Classroom, code=code)
         serializer.save(classroom=classroom, author=self.request.user)
 
-    def destroy(self, request, **kwargs):
-        announcement = self.get_object()
-        announcement.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
 
 class AnnouncementComments(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAnnouncementPartOfClassroom, IsTeacherOrStudent]
@@ -82,8 +76,3 @@ class AnnouncementCommentDelete(generics.DestroyAPIView):
     def get_object(self):
         comment_id = self.kwargs['comment_id']
         return get_object_or_404(Comment, id=comment_id)
-
-    def destroy(self, request, **kwargs):
-        comment = self.get_object()
-        comment.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
