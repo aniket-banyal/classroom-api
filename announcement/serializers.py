@@ -17,6 +17,8 @@ class NewAnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = ('text', 'classroom', 'author')
 
+        read_only_fields = ['classroom', 'author']
+
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)

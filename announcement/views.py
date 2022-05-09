@@ -19,22 +19,22 @@ class Announcements(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsTeacherOrStudent]
     serializer_class = AnnouncementSerializer
 
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'GET':
+            return AnnouncementSerializer
+        elif method == 'POST':
+            return NewAnnouncementSerializer
+
     def get_queryset(self):
         code = self.kwargs['code']
         classroom = get_object_or_404(Classroom, code=code)
         return classroom.get_announcements()
 
-    def create(self, request, **kwargs):
+    def perform_create(self, serializer):
         code = self.kwargs['code']
         classroom = get_object_or_404(Classroom, code=code)
-        request.data.update({"classroom": classroom.id})
-        request.data.update({"author": request.user.id})
-
-        serializer = NewAnnouncementSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(AnnouncementSerializer(serializer.instance).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(classroom=classroom, author=self.request.user)
 
 
 class AnnouncementDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -45,8 +45,10 @@ class AnnouncementDetail(generics.RetrieveUpdateDestroyAPIView):
         announcement_id = self.kwargs['announcement_id']
         return get_object_or_404(Announcement, id=announcement_id)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs, partial=True)
+    def perform_update(self, serializer):
+        code = self.kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+        serializer.save(classroom=classroom, author=self.request.user)
 
     def destroy(self, request, **kwargs):
         announcement = self.get_object()
