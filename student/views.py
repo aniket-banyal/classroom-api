@@ -1,9 +1,8 @@
 from classroom.models import Classroom
+from classroom.permissions import IsTeacher
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from user.serializers import UserSerializer
@@ -35,23 +34,18 @@ class Students(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@extend_schema(responses=UserSerializer)
-@api_view(['GET', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def students_detail(request, code, student_id):
-    classroom = get_object_or_404(Classroom, code=code)
-    student = get_object_or_404(get_user_model(), id=student_id)
-    if student not in classroom.students.all():
-        return Response(status=status.HTTP_404_NOT_FOUND)
+class StudentsDetail(generics.ListAPIView, generics.DestroyAPIView):
+    permission_classes = [IsAuthenticated, IsTeacher]
+    serializer_class = UserSerializer
 
-    user = request.user
-    if request.method == 'GET':
-        if not classroom.is_user_a_teacher(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        return Response(UserSerializer(student).data, status=status.HTTP_200_OK)
+    def get_object(self):
+        student_id = self.kwargs['student_id']
+        return get_object_or_404(get_user_model(), id=student_id)
 
-    if request.method == 'DELETE':
-        if not(classroom.is_user_a_teacher(user) or user == student):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def destroy(self, request, **kwargs):
+        code = kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+
+        student = self.get_object()
         classroom.students.remove(student)
         return Response(status=status.HTTP_204_NO_CONTENT)
