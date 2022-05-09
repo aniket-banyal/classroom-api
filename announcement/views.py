@@ -17,7 +17,6 @@ from .serializers import (AnnouncementSerializer, CommentSerializer,
 
 class Announcements(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsTeacherOrStudent]
-    serializer_class = AnnouncementSerializer
 
     def get_serializer_class(self):
         method = self.request.method
@@ -58,25 +57,23 @@ class AnnouncementDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class AnnouncementComments(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, IsAnnouncementPartOfClassroom, IsTeacherOrStudent]
-    serializer_class = CommentSerializer
+
+    def get_serializer_class(self):
+        method = self.request.method
+        if method == 'GET':
+            return CommentSerializer
+        elif method == 'POST':
+            return NewCommentSerializer
 
     def get_queryset(self):
         announcement_id = self.kwargs['announcement_id']
         announcement = get_object_or_404(Announcement, id=announcement_id)
         return announcement.get_comments()
 
-    def create(self, request, **kwargs):
-        announcement_id = kwargs['announcement_id']
+    def perform_create(self, serializer):
+        announcement_id = self.kwargs['announcement_id']
         announcement = get_object_or_404(Announcement, id=announcement_id)
-
-        request.data.update({"announcement": announcement.id})
-        request.data.update({"author": request.user.id})
-
-        serializer = NewCommentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(CommentSerializer(serializer.instance).data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save(announcement=announcement, author=self.request.user)
 
 
 class AnnouncementCommentDelete(generics.DestroyAPIView):

@@ -16,7 +16,6 @@ class NewAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
         fields = ('text', 'classroom', 'author')
-
         read_only_fields = ['classroom', 'author']
 
 
@@ -32,3 +31,4 @@ class NewCommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ('announcement', 'text', 'author')
+        read_only_fields = ['announcement', 'author']
