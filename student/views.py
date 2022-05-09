@@ -1,38 +1,37 @@
 from classroom.models import Classroom
-from classroom.serializers import ClassroomSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from user.serializers import UserSerializer
 
+from student.permissions import IsPartOfClassroomOrPostOnly
 
-@extend_schema(responses=UserSerializer(many=True))
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def students(request, code):
-    classroom = get_object_or_404(Classroom, code=code)
-    user = request.user
 
-    if request.method == 'GET':
+class Students(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated, IsPartOfClassroomOrPostOnly]
+    serializer_class = UserSerializer
 
-        if not classroom.is_user_part_of_classroom(user):
-            return Response(status=status.HTTP_403_FORBIDDEN)
+    def get_queryset(self):
+        code = self.kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+        return classroom.get_all_students()
 
-        serializer = UserSerializer(classroom.get_all_students(), many=True)
-        return Response(serializer.data)
+    def post(self, request, **kwargs):
+        code = kwargs['code']
+        classroom = get_object_or_404(Classroom, code=code)
+        user = request.user
 
-    elif request.method == 'POST':
-        # check is user is already part of this classroom as a Teacher or Student
+        # check if user is already part of this classroom
         if classroom.is_user_part_of_classroom(user):
             return Response(status=status.HTTP_409_CONFLICT)
 
         classroom.students.add(user)
-        serializer = ClassroomSerializer(classroom)
 
+        serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
