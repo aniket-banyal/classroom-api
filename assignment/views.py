@@ -67,9 +67,8 @@ class AssignmentDetail(generics.RetrieveUpdateDestroyAPIView):
 
     def update(self, request, **kwargs):
         code = kwargs['code']
-        assignment_id = kwargs['assignment_id']
         classroom = get_object_or_404(Classroom, code=code)
-        assignment = get_object_or_404(Assignment, id=assignment_id)
+        assignment = self.get_object()
 
         request.data.update({"classroom": classroom.id})
 
