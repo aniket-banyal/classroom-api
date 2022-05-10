@@ -1,5 +1,5 @@
 from api.permissions import IsTeacherOrStudentReadOnly
-from assignment.helpers import get_student_submission_data, get_user_submission
+from assignment.helpers import get_student_submission_data
 from assignment.serializers import StudentSubmissionsSerializer
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -53,7 +53,7 @@ class StudentSubmissions(generics.ListAPIView):
         submissions = []
         student = get_object_or_404(get_user_model(), id=student_id)
         for assignment in classroom.assignment_set.all().order_by('-created_at'):
-            submission = get_user_submission(assignment, student)
+            submission = assignment.get_student_submission(student)
             data = get_student_submission_data(assignment, student, submission)
             submissions.append(data)
 

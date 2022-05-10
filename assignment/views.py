@@ -15,7 +15,7 @@ from assignment.permissions import (IsAssignmentPartOfClassroom,
                                     IsTeacherOrStudentReadOnly,
                                     IsTeacherOrStudentReadOnlyAssignmentDetail)
 
-from .helpers import get_submissions, get_user_submission
+from .helpers import get_submissions
 from .models import Assignment, Submission
 from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           NewAssignmentSerializer, NewSubmissionSerializer,
@@ -142,7 +142,7 @@ class StudentSubmission(APIView):
         assignment = get_object_or_404(Assignment, id=assignment_id)
         user = request.user
 
-        submission = get_user_submission(assignment, user)
+        submission = assignment.get_student_submission(user)
         if submission is None:
             if assignment.due_date_time > datetime.now(timezone.utc):
                 return Response({'status': 'Assigned'})

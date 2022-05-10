@@ -34,7 +34,7 @@ class Students(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class StudentsDetail(generics.ListAPIView, generics.DestroyAPIView):
+class StudentsDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
     permission_classes = [IsAuthenticated, IsTeacher]
     serializer_class = UserSerializer
 

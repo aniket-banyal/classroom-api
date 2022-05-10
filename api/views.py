@@ -1,4 +1,3 @@
-from assignment.helpers import get_user_submission
 from assignment.serializers import AssignmentWithClassroomSerializer
 from classroom.models import Classroom
 from classroom.serializers import ClassroomSerializer
@@ -57,7 +56,7 @@ class AllAssignmentsToDo(generics.ListAPIView):
             assignments = classroom.get_assignments()
 
             for assignment in assignments:
-                submission = get_user_submission(assignment, user)
+                submission = assignment.get_student_submission(user)
                 if submission is None:
                     all_assignments.append(assignment)
 
