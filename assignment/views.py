@@ -15,7 +15,6 @@ from assignment.permissions import (IsAssignmentPartOfClassroom,
                                     IsTeacherOrStudentReadOnly,
                                     IsTeacherOrStudentReadOnlyAssignmentDetail)
 
-from .helpers import get_submissions
 from .models import Assignment, Submission
 from .serializers import (AssignmentDetailSerializer, AssignmentSerializer,
                           NewAssignmentSerializer, NewSubmissionSerializer,
@@ -102,8 +101,7 @@ class Submissions(generics.ListCreateAPIView):
     def get_queryset(self):
         assignment_id = self.kwargs['assignment_id']
         assignment = get_object_or_404(Assignment, id=assignment_id)
-
-        return get_submissions(assignment)
+        return assignment.get_all_submissions()
 
     def perform_create(self, serializer):
         assignment_id = self.kwargs['assignment_id']

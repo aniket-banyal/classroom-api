@@ -2,6 +2,8 @@ from classroom.models import Classroom
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from .helpers import get_submission_data
+
 
 class Assignment(models.Model):
     classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE)
@@ -14,6 +16,15 @@ class Assignment(models.Model):
 
     def get_submissions(self):
         return [submission for submission in self.submission_set.all()]
+
+    def get_all_submissions(self):
+        submissions = []
+        for student in self.classroom.students.all():
+            submission = self.get_student_submission(student)
+            data = get_submission_data(self.due_date_time, student, submission)
+            submissions.append(data)
+
+        return submissions
 
     def get_submissions_to_review(self):
         return [submission for submission in self.submission_set.all()
