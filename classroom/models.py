@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.crypto import get_random_string
 
+from assignment.helpers import get_student_submission_data
+
 
 class Classroom(models.Model):
     CODE_LEN = 16
@@ -60,6 +62,15 @@ class Classroom(models.Model):
 
     def is_user_part_of_classroom(self, user):
         return self.is_user_a_student(user) or self.is_user_a_teacher(user)
+
+    def get_student_submissions(self, student):
+        submissions = []
+        for assignment in self.assignment_set.all().order_by('-created_at'):
+            submission = assignment.get_student_submission(student)
+            data = get_student_submission_data(assignment, student, submission)
+            submissions.append(data)
+
+        return submissions
 
     def __str__(self):
         return f'Name: {self.name}-Subject: {self.subject}'
