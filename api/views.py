@@ -1,8 +1,7 @@
 from assignment.serializers import AssignmentWithClassroomSerializer
 from classroom.models import Classroom
 from classroom.serializers import ClassroomSerializer
-from drf_spectacular.utils import extend_schema, inline_serializer
-from rest_framework import generics, serializers
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from .serializers import ToReviewSerializer
@@ -19,13 +18,6 @@ class ListCreateTeachingClassroom(generics.ListCreateAPIView):
         serializer.save(teacher=self.request.user)
 
 
-@extend_schema(
-    request=inline_serializer(
-        name='JoinClassroomSerializer',
-        fields={'code': serializers.CharField()}
-    ),
-    responses=ClassroomSerializer
-)
 class ClassesEnrolled(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ClassroomSerializer
@@ -53,13 +45,9 @@ class AllAssignmentsToDo(generics.ListAPIView):
         user = self.request.user
         all_assignments = []
         for classroom in user.enrolled_classrooms.all():
-            assignments = classroom.get_assignments()
+            all_assignments.extend(classroom.get_assignments_todo(user))
 
-            for assignment in assignments:
-                submission = assignment.get_student_submission(user)
-                if submission is None:
-                    all_assignments.append(assignment)
-
+        all_assignments.sort(key=lambda assignement: assignement.due_date_time)
         return all_assignments
 
 

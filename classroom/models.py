@@ -40,6 +40,15 @@ class Classroom(models.Model):
     def get_assignments(self):
         return self.assignment_set.all().order_by('-created_at')
 
+    def get_assignments_todo(self, student):
+        assignments_todo = []
+
+        for assignment in self.get_assignments():
+            submission = assignment.get_student_submission(student)
+            if submission is None:
+                assignments_todo.append(assignment)
+        return assignments_todo
+
     def get_all_students(self):
         return self.students.all()
 
