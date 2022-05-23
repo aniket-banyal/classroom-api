@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 
 from assignment.permissions import (IsAssignmentPartOfClassroom,
                                     IsStudentReadOnly,
+                                    IsSubmissionPartOfAssignment,
                                     IsTeacherOrStudentPostOnlySubmissions,
                                     IsTeacherOrStudentReadOnly,
                                     IsTeacherOrStudentReadOnlyAssignmentDetail)
@@ -116,7 +117,7 @@ class Submissions(generics.ListCreateAPIView):
 
 
 class GradeSubmission(generics.UpdateAPIView):
-    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsTeacher]
+    permission_classes = [IsAuthenticated, IsAssignmentPartOfClassroom, IsSubmissionPartOfAssignment, IsTeacher]
     serializer_class = SubmissionSerializer
 
     def get_object(self):

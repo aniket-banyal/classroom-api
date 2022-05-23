@@ -2,7 +2,7 @@ from classroom.models import Classroom
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import BasePermission
 
-from assignment.models import Assignment
+from assignment.models import Assignment, Submission
 
 
 class IsTeacherOrStudentReadOnly(BasePermission):
@@ -25,6 +25,16 @@ class IsAssignmentPartOfClassroom(BasePermission):
         assignment = get_object_or_404(Assignment, id=assignment_id)
 
         return assignment.classroom == classroom
+
+
+class IsSubmissionPartOfAssignment(BasePermission):
+    def has_permission(self, request, view):
+        submission_id = view.kwargs['submission_id']
+        assignment_id = view.kwargs['assignment_id']
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+        submission = get_object_or_404(Submission, id=submission_id)
+
+        return submission.assignment == assignment
 
 
 class IsTeacherOrStudentReadOnlyAssignmentDetail(BasePermission):
